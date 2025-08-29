@@ -25,9 +25,12 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .container {
@@ -38,6 +41,7 @@
 
         /* Auth Styles */
         .auth-container {
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://i.imgur.com/rN5nO7i.jpg') no-repeat center center/cover;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -46,9 +50,9 @@
         }
 
         .auth-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             padding: 40px;
             width: 100%;
             max-width: 400px;
@@ -148,6 +152,7 @@
         .dashboard {
             display: none;
             min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .navbar {
@@ -359,6 +364,19 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
+        
+        /* Logo for all pages */
+        .logo-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 200;
+        }
+
+        .logo-container img {
+            height: 50px;
+            width: auto;
+        }
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -393,6 +411,10 @@
     </style>
 </head>
 <body>
+    <div class="logo-container">
+        <img src="https://i.imgur.com/vH95e8P.png" alt="Alva's Education Foundation Logo">
+    </div>
+
     <div id="authSection" class="auth-container">
         <div class="auth-card">
             <div class="auth-header">

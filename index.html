@@ -126,21 +126,9 @@
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.4s ease;
-	    	color: var(--light); 
+	    color: var(--light); 
     	    caret-color: white;
         }
-
-
-		.form-control option {
-		    background-color: var(--dark);
-		    color: var(--light);
-		}
-		
-		.form-control option:hover, 
-		.form-control option:checked {
-		    background-color: var(--primary);
-		    color: white;
-		}
 
         .form-control:focus {
             outline: none;
@@ -272,11 +260,13 @@
             color: white;
             font-size: 2.5rem;
             margin-bottom: 10px;
+            text-shadow: 0px 0px 15px black;
         }
 
         .dashboard-header p {
             color: rgba(255, 255, 255, 0.9);
             font-size: 1.1rem;
+            text-shadow: 0px 0px 10px black;
         }
 
         .card {
@@ -303,6 +293,7 @@
             font-size: 1.3rem;
             color: var(--light);
             font-weight: 600;
+            text-shadow: 0px 0px 5px black;
         }
 
         .notification-list {
@@ -449,6 +440,14 @@
             filter: drop-shadow(0px 10px 15px rgba(255, 255, 255, 1));
         }
 
+        /* Empty state styling */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--light);
+            font-style: italic;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .form-row {
@@ -591,7 +590,8 @@
                         </div>
                     </div>
                     <ul class="notification-list" id="notificationList">
-                        </ul>
+                        <!-- Notifications will be populated here -->
+                    </ul>
                 </div>
             </div>
 
@@ -601,7 +601,8 @@
                         <h2 class="card-title">Upcoming Events</h2>
                     </div>
                     <ul class="notification-list" id="eventsList">
-                        </ul>
+                        <!-- Events will be populated here -->
+                    </ul>
                 </div>
             </div>
 
@@ -611,7 +612,8 @@
                         <h2 class="card-title">Exam Schedule</h2>
                     </div>
                     <ul class="notification-list" id="examsList">
-                        </ul>
+                        <!-- Exams will be populated here -->
+                    </ul>
                 </div>
             </div>
         </div>
@@ -685,7 +687,8 @@
                         <h2 class="card-title">Manage Notifications</h2>
                     </div>
                     <ul class="notification-list" id="adminNotificationList">
-                        </ul>
+                        <!-- Admin notifications will be populated here -->
+                    </ul>
                 </div>
             </div>
 
@@ -735,13 +738,53 @@
             localStorage.setItem('users', JSON.stringify(initialUsers));
         }
 
+        // Add some sample data
+        if (!localStorage.getItem('notifications')) {
+            allNotifications = [
+                {
+                    id: 1,
+                    title: 'Welcome to College Connect',
+                    content: 'This is the college notification system. Stay updated with all events and announcements.',
+                    type: 'general',
+                    audience: 'college',
+                    date: new Date().toLocaleDateString('en-US')
+                },
+                {
+                    id: 2,
+                    title: 'Technical Fest 2024',
+                    content: 'Annual technical fest will be held on December 15-17. Register now!',
+                    type: 'event',
+                    audience: 'college',
+                    date: new Date(Date.now() + 86400000 * 5).toLocaleDateString('en-US')
+                },
+                {
+                    id: 3,
+                    title: 'End Semester Exams',
+                    content: 'Semester exams schedule has been announced. Check your department notice board.',
+                    type: 'exam',
+                    audience: 'college',
+                    date: new Date(Date.now() + 86400000 * 10).toLocaleDateString('en-US')
+                },
+                {
+                    id: 4,
+                    title: 'CSE Workshop on AI',
+                    content: 'Workshop on Artificial Intelligence for CSE students on November 30th.',
+                    type: 'event',
+                    audience: 'CSE',
+                    date: new Date(Date.now() + 86400000 * 2).toLocaleDateString('en-US')
+                }
+            ];
+            localStorage.setItem('notifications', JSON.stringify(allNotifications));
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, rendering dashboards...');
             renderDashboards();
         });
 
-
         function renderDashboards() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            console.log('Rendering dashboards, current user:', currentUser);
             
             // Apply initial display states to manage transitions correctly
             if (currentUser) {
@@ -752,12 +795,11 @@
                     setTimeout(() => studentDashboard.classList.add('visible'), 10);
                     const userDetails = users[currentUser.email];
                     if (userDetails) {
-                        const filteredNotifications = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular'));
-                        renderNotifications(filteredNotifications);
-                        const filteredEvents = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'event');
-                        renderEvents(filteredEvents);
-                        const filteredExams = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'exam');
-                        renderExams(filteredExams);
+                        console.log('User details:', userDetails);
+                        console.log('All notifications:', allNotifications);
+                        
+                        // Show notifications section by default
+                        showSection('notifications');
                     }
                 } else if (currentUser.role === 'admin') {
                     adminDashboard.style.display = 'block';
@@ -773,7 +815,6 @@
                 authSection.classList.remove('fade-out');
             }
         }
-
 
         function toggleAuthForm() {
             loginForm.classList.toggle('hidden');
@@ -794,7 +835,7 @@
             
             if (users[email] && users[email].password === password) {
                 const user = users[email];
-                localStorage.setItem('currentUser', JSON.stringify({ email: user.email, role: user.role }));
+                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: user.role }));
                 
                 // Trigger fade-out on auth section
                 authSection.classList.add('fade-out');
@@ -861,6 +902,13 @@
 
         function renderNotifications(notifications) {
             notificationList.innerHTML = '';
+            console.log('Rendering notifications:', notifications);
+            
+            if (notifications.length === 0) {
+                notificationList.innerHTML = '<li class="empty-state">No notifications found</li>';
+                return;
+            }
+            
             notifications.forEach(note => {
                 const li = document.createElement('li');
                 li.className = 'notification-item';
@@ -877,6 +925,13 @@
 
         function renderEvents(events) {
             eventsList.innerHTML = '';
+            console.log('Rendering events:', events);
+            
+            if (events.length === 0) {
+                eventsList.innerHTML = '<li class="empty-state">No upcoming events</li>';
+                return;
+            }
+            
             events.forEach(event => {
                 const li = document.createElement('li');
                 li.className = 'notification-item';
@@ -893,6 +948,13 @@
 
         function renderExams(exams) {
             examsList.innerHTML = '';
+            console.log('Rendering exams:', exams);
+            
+            if (exams.length === 0) {
+                examsList.innerHTML = '<li class="empty-state">No exam schedule available</li>';
+                return;
+            }
+            
             exams.forEach(exam => {
                 const li = document.createElement('li');
                 li.className = 'notification-item';
@@ -918,17 +980,24 @@
 
             let filtered;
             if (audience === 'all') {
-                filtered = allNotifications.filter(n => (n.audience || n.audience === userDetails.branch));
+                filtered = allNotifications.filter(n => n.audience === 'college' || n.audience === userDetails.branch);
             } else {
-            // This condition filters by audience and also by the specified notification types.
                 filtered = allNotifications.filter(n => n.audience === audience && (n.type === 'general' || n.type === 'circular'));
             }
-        
+            
+            console.log(`Filtered for audience ${audience}:`, filtered);
             renderNotifications(filtered);
         }
-    
+
         function renderAdminNotifications() {
             adminNotificationList.innerHTML = '';
+            console.log('Rendering admin notifications:', allNotifications);
+            
+            if (allNotifications.length === 0) {
+                adminNotificationList.innerHTML = '<li class="empty-state">No notifications created yet</li>';
+                return;
+            }
+            
             allNotifications.forEach(note => {
                 const li = document.createElement('li');
                 li.className = 'notification-item';
@@ -964,33 +1033,40 @@
         }
 
         function showSection(sectionId) {
-    // Hide all sections first
-    document.getElementById('notificationsSection').classList.add('hidden');
-    document.getElementById('eventsSection').classList.add('hidden');
-    document.getElementById('examsSection').classList.add('hidden');
+            console.log('Switching to section:', sectionId);
+            
+            // Hide all sections first
+            document.getElementById('notificationsSection').classList.add('hidden');
+            document.getElementById('eventsSection').classList.add('hidden');
+            document.getElementById('examsSection').classList.add('hidden');
 
-    // Show the selected section
-    document.getElementById(sectionId + 'Section').classList.remove('hidden');
+            // Show the selected section
+            document.getElementById(sectionId + 'Section').classList.remove('hidden');
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser && currentUser.role === 'student') {
-        const userDetails = users[currentUser.email];
-        if (userDetails) {
-            if (sectionId === 'notifications') {
-                const filteredNotifications = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular'));
-                renderNotifications(filteredNotifications);
-            } else if (sectionId === 'events') {
-                const filteredEvents = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'event');
-                renderEvents(filteredEvents);
-            } else if (sectionId === 'exams') {
-                const filteredExams = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'exam');
-                renderExams(filteredExams);
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser && currentUser.role === 'student') {
+                const userDetails = users[currentUser.email];
+                if (userDetails) {
+                    if (sectionId === 'notifications') {
+                        const filteredNotifications = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular'));
+                        console.log('Filtered notifications:', filteredNotifications);
+                        renderNotifications(filteredNotifications);
+                    } else if (sectionId === 'events') {
+                        const filteredEvents = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'event');
+                        console.log('Filtered events:', filteredEvents);
+                        renderEvents(filteredEvents);
+                    } else if (sectionId === 'exams') {
+                        const filteredExams = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'exam');
+                        console.log('Filtered exams:', filteredExams);
+                        renderExams(filteredExams);
+                    }
+                }
             }
         }
-    }
-}
 
         function showAdminSection(sectionId) {
+            console.log('Switching to admin section:', sectionId);
+            
             document.getElementById('createSection').classList.add('hidden');
             document.getElementById('manageSection').classList.add('hidden');
             document.getElementById('analyticsSection').classList.add('hidden');

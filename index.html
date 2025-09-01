@@ -126,9 +126,21 @@
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.4s ease;
-	    color: var(--light); 
+	    	color: var(--light); 
     	    caret-color: white;
         }
+
+
+		.form-control option {
+		    background-color: var(--dark);
+		    color: var(--light);
+		}
+		
+		.form-control option:hover, 
+		.form-control option:checked {
+		    background-color: var(--primary);
+		    color: white;
+		}
 
         .form-control:focus {
             outline: none;
@@ -1010,3 +1022,4 @@
     </script>
 </body>
 </html>
+

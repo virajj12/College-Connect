@@ -6,7 +6,7 @@
     <title>College Connect - Unified Notification System</title>
     <style>
         :root {
-            --primary: #2563eb;
+            --primary: #5c8fff;
             --secondary: #1e40af;
             --accent: #3b82f6;
             --light: #f8fafc;
@@ -23,7 +23,7 @@
             box-sizing: border-box;
         }
         
-        /* Fixes for the logout shift */
+        /* Fixes for the logout shift and unified centering */
         html {
             overflow-y: scroll;
         }
@@ -32,8 +32,12 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             color: var(--dark);
+            display: flex; /* Unified layout strategy */
+            align-items: center;
+            justify-content: center;
+            position: relative; /* Added for correct positioning of sections */
         }
-
+        
         /* New container for the full-screen background */
         .main-background {
             position: fixed;
@@ -42,7 +46,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('banner1.jpg');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('banner.jpg');
             background-repeat: no-repeat;
             background-position: center center;
             background-size: cover;
@@ -56,20 +60,34 @@
 
         /* Auth Styles */
         .auth-container {
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            width: 100vw;
+            height: 100vh;
+            opacity: 1; /* Added for fade transition */
+            transition: opacity 0.5s ease-in-out; /* Added for fade transition */
+            position: absolute; /* Added for correct layering */
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        /* Auth transition state */
+        .auth-container.fade-out {
+            opacity: 0;
         }
 
         .auth-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(55, 55, 55, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             padding: 40px;
             width: 100%;
             max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .auth-header {
@@ -79,12 +97,13 @@
 
         .auth-header h1 {
             color: var(--primary);
+            text-shadow: 0px 0px 15px black;
             font-size: 2rem;
             margin-bottom: 10px;
         }
 
         .auth-header p {
-            color: var(--gray);
+            color: var(--light);
         }
 
         .form-group {
@@ -94,17 +113,21 @@
         .form-group label {
             display: block;
             margin-bottom: 5px;
-            color: var(--dark);
+            color: var(--light);
             font-weight: 500;
         }
 
         .form-control {
+            transition: opacity 0.2s ease-in-out;
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(-45deg, rgba(60, 60, 60, 0.6), rgba(80, 80, 80,0.6));
             border-radius: 10px;
             font-size: 16px;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.4s ease;
+	    color: var(--light); 
+    	    caret-color: white;
         }
 
         .form-control:focus {
@@ -132,7 +155,7 @@
 
         .btn-primary:hover {
             background: var(--secondary);
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.01);
         }
 
         .btn-secondary {
@@ -153,7 +176,7 @@
         .switch-form {
             text-align: center;
             margin-top: 20px;
-            color: var(--gray);
+            color: var(--light);
         }
 
         .switch-form a {
@@ -164,13 +187,28 @@
 
         /* Dashboard Styles */
         .dashboard {
-            display: none;
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 100vw;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('banner.jpg') no-repeat center center fixed;
+            opacity: 0; /* Added for fade transition */
+            transition: opacity 0.5s ease-in-out; /* Added for fade transition */
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        /* Dashboard transition state */
+        .dashboard.visible {
+            opacity: 1;
+            z-index: 3;
         }
 
         .navbar {
-            background: white;
+            background: linear-gradient(rgba(80, 80, 80, 0.3), rgba(120, 120, 120, 0.3));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 15px 0;
             position: sticky;
@@ -187,7 +225,7 @@
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
-            color: var(--primary);
+            color: rgba(48, 137, 255,1);
         }
 
         .nav-links {
@@ -197,7 +235,7 @@
         }
 
         .nav-links a {
-            color: var(--dark);
+            color: var(--light);
             text-decoration: none;
             padding: 8px 16px;
             border-radius: 8px;
@@ -205,7 +243,7 @@
         }
 
         .nav-links a:hover {
-            background: #f1f5f9;
+            background: #54aaff;
         }
 
         .main-content {
@@ -230,11 +268,14 @@
         }
 
         .card {
-            background: white;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 15px;
             padding: 25px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .card-header {
@@ -248,7 +289,7 @@
 
         .card-title {
             font-size: 1.3rem;
-            color: var(--dark);
+            color: var(--light);
             font-weight: 600;
         }
 
@@ -259,7 +300,9 @@
         .notification-item {
             padding: 20px;
             border-radius: 10px;
-            background: #f8fafc;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             margin-bottom: 15px;
             border-left: 4px solid var(--primary);
         }
@@ -273,17 +316,17 @@
 
         .notification-title {
             font-weight: 600;
-            color: var(--dark);
+            color: var(--light);
             font-size: 1.1rem;
         }
 
         .notification-meta {
-            color: var(--gray);
+            color: var(--light);
             font-size: 0.9rem;
         }
 
         .notification-content {
-            color: var(--dark);
+            color: var(--light);
             line-height: 1.6;
         }
 
@@ -312,9 +355,9 @@
 
         .filter-btn {
             padding: 8px 16px;
-            border: 2px solid #e2e8f0;
+            border: 1px solid #a8a8a8;
             border-radius: 8px;
-            background: white;
+            background: rgba(165,165,165,0.5);
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -383,14 +426,15 @@
         /* Logo for all pages */
         .logo-container {
             position: fixed;
-            top: 20px;
+            top: 10px;
             left: 20px;
             z-index: 200;
         }
 
         .logo-container img {
-            height: 50px;
+            height: 45px;
             width: auto;
+            filter: drop-shadow(0px 10px 15px rgba(255, 255, 255, 1));
         }
 
         /* Responsive Design */
@@ -422,6 +466,7 @@
         .text-center { text-align: center; }
         .mb-20 { margin-bottom: 20px; }
         .mt-20 { margin-top: 20px; }
+        /* The hidden class is now purely for display: none */
         .hidden { display: none; }
     </style>
 </head>
@@ -488,7 +533,6 @@
                     <label for="registerRole">Role</label>
                     <select id="registerRole" class="form-control" required>
                         <option value="student">Student</option>
-                        <option value="admin">Administrator</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Create Account</button>
@@ -683,29 +727,41 @@
             renderDashboards();
         });
 
+
         function renderDashboards() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            // Apply initial display states to manage transitions correctly
             if (currentUser) {
                 authSection.style.display = 'none';
                 if (currentUser.role === 'student') {
                     studentDashboard.style.display = 'block';
+                    // Trigger fade-in after a short delay
+                    setTimeout(() => studentDashboard.classList.add('visible'), 10);
                     const userDetails = users[currentUser.email];
                     if (userDetails) {
-                        const filteredNotifications = allNotifications.filter(n => 
-                            (n.audience === 'college' || n.audience === userDetails.branch) && 
-                            (n.type === 'general' || n.type === 'circular')
-                        );
+                        const filteredNotifications = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular'));
                         renderNotifications(filteredNotifications);
-                        renderEvents(allNotifications.filter(n => n.type === 'event'));
-                        renderExams(allNotifications.filter(n => n.type === 'exam'));
+                        const filteredEvents = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'event');
+                        renderEvents(filteredEvents);
+                        const filteredExams = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'exam');
+                        renderExams(filteredExams);
                     }
                 } else if (currentUser.role === 'admin') {
                     adminDashboard.style.display = 'block';
+                    // Trigger fade-in after a short delay
+                    setTimeout(() => adminDashboard.classList.add('visible'), 10);
                     renderAdminNotifications();
                     updateAnalytics();
                 }
+            } else {
+                authSection.style.display = 'flex';
+                studentDashboard.style.display = 'none';
+                adminDashboard.style.display = 'none';
+                authSection.classList.remove('fade-out');
             }
         }
+
 
         function toggleAuthForm() {
             loginForm.classList.toggle('hidden');
@@ -727,7 +783,14 @@
             if (users[email] && users[email].password === password) {
                 const user = users[email];
                 localStorage.setItem('currentUser', JSON.stringify({ email: user.email, role: user.role }));
-                renderDashboards();
+                
+                // Trigger fade-out on auth section
+                authSection.classList.add('fade-out');
+                
+                // Wait for the transition to finish before changing display
+                authSection.addEventListener('transitionend', () => {
+                    renderDashboards();
+                }, { once: true });
             } else {
                 alert('Invalid email or password.');
             }
@@ -781,6 +844,7 @@
             updateAnalytics();
             alert('Notification published successfully!');
             notificationForm.reset();
+            renderDashboards();
         });
 
         function renderNotifications(notifications) {
@@ -834,20 +898,23 @@
         function filterNotifications(audience, button) {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             const userDetails = users[currentUser.email];
-            
+        
+            // Logic to update active button
             const allBtns = document.querySelectorAll('.filter-btn');
             allBtns.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
             let filtered;
             if (audience === 'all') {
-                filtered = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular'));
+                filtered = allNotifications.filter(n => (n.audience || n.audience === userDetails.branch));
             } else {
+            // This condition filters by audience and also by the specified notification types.
                 filtered = allNotifications.filter(n => n.audience === audience && (n.type === 'general' || n.type === 'circular'));
             }
+        
             renderNotifications(filtered);
         }
-
+    
         function renderAdminNotifications() {
             adminNotificationList.innerHTML = '';
             allNotifications.forEach(note => {
@@ -871,6 +938,7 @@
             
             renderAdminNotifications();
             updateAnalytics();
+            renderDashboards();
         }
 
         function updateAnalytics() {
@@ -884,12 +952,31 @@
         }
 
         function showSection(sectionId) {
-            document.getElementById('notificationsSection').classList.add('hidden');
-            document.getElementById('eventsSection').classList.add('hidden');
-            document.getElementById('examsSection').classList.add('hidden');
-            
-            document.getElementById(sectionId + 'Section').classList.remove('hidden');
+    // Hide all sections first
+    document.getElementById('notificationsSection').classList.add('hidden');
+    document.getElementById('eventsSection').classList.add('hidden');
+    document.getElementById('examsSection').classList.add('hidden');
+
+    // Show the selected section
+    document.getElementById(sectionId + 'Section').classList.remove('hidden');
+
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (currentUser && currentUser.role === 'student') {
+        const userDetails = users[currentUser.email];
+        if (userDetails) {
+            if (sectionId === 'notifications') {
+                const filteredNotifications = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular'));
+                renderNotifications(filteredNotifications);
+            } else if (sectionId === 'events') {
+                const filteredEvents = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'event');
+                renderEvents(filteredEvents);
+            } else if (sectionId === 'exams') {
+                const filteredExams = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'exam');
+                renderExams(filteredExams);
+            }
         }
+    }
+}
 
         function showAdminSection(sectionId) {
             document.getElementById('createSection').classList.add('hidden');
@@ -904,17 +991,22 @@
                 updateAnalytics();
             }
         }
-
+        
         function logout() {
-            localStorage.removeItem('currentUser');
-            studentDashboard.style.display = 'none';
-            adminDashboard.style.display = 'none';
-            authSection.style.display = '';
-            loginForm.reset();
+            const currentDashboard = studentDashboard.style.display === 'block' ? studentDashboard : adminDashboard;
+            
+            // Trigger fade-out on current dashboard
+            currentDashboard.classList.remove('visible');
+            currentDashboard.classList.add('fade-out');
+            
+            // Wait for the transition to finish before changing display
+            currentDashboard.addEventListener('transitionend', () => {
+                localStorage.removeItem('currentUser');
+                currentDashboard.style.display = 'none';
+                currentDashboard.classList.remove('fade-out');
+                renderDashboards();
+            }, { once: true });
         }
     </script>
 </body>
-
 </html>
-
-

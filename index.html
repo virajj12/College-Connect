@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="icon" type="image/x-icon" href="favicon.png">
     <title>College Connect - Unified Notification System</title>
     <style>
         :root {
@@ -23,12 +23,12 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         /* Fixes for the logout shift and unified centering */
         html {
             overflow-y: scroll;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
@@ -38,7 +38,7 @@
             justify-content: center;
             position: relative; /* Added for correct positioning of sections */
         }
-        
+
         /* New container for the full-screen background */
         .main-background {
             position: fixed;
@@ -52,7 +52,7 @@
             background-position: center center;
             background-size: cover;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -123,12 +123,12 @@
             width: 100%;
             padding: 12px 16px;
             border: 2px solid rgba(255, 255, 255, 0.2);
-            background: linear-gradient(-45deg, rgba(60, 60, 60, 0.6), rgba(80, 80, 80,0.6));
+            background: linear-gradient(-45deg, rgba(60, 60, 60, 0.6), rgba(80, 80, 80, 0.6));
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.4s ease;
-	    color: var(--light); 
-    	    caret-color: white;
+            color: var(--light);
+            caret-color: white;
         }
 
         .form-control:focus {
@@ -186,6 +186,28 @@
             cursor: pointer;
         }
 
+        /* Forgot password modal */
+        #forgotPasswordModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--light);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            max-width: 400px;
+            width: 90%;
+            color: var(--dark);
+        }
+
+        #forgotPasswordModal h3 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
         /* Dashboard Styles */
         .dashboard {
             min-height: 100vh;
@@ -197,8 +219,9 @@
             top: 0;
             left: 0;
             z-index: 1;
+            overflow-y: auto;
         }
-        
+
         /* Dashboard transition state */
         .dashboard.visible {
             opacity: 1;
@@ -288,6 +311,7 @@
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 2px solid #f1f5f9;
+            flex-wrap: wrap;
         }
 
         .card-title {
@@ -309,6 +333,12 @@
             -webkit-backdrop-filter: blur(30px);
             margin-bottom: 15px;
             border-left: 4px solid var(--primary);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background: rgba(0, 0, 0, 0.8);
         }
 
         .notification-header {
@@ -332,6 +362,10 @@
         .notification-content {
             color: var(--light);
             line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .notification-badge {
@@ -426,7 +460,7 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
-        
+
         /* Logo for all pages */
         .logo-container {
             position: fixed;
@@ -449,26 +483,145 @@
             font-style: italic;
         }
 
+        /* Notification modal styles */
+        #notificationModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1500;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: var(--dark);
+        }
+
+        #notificationModal h2 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        #notificationModal img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        #notificationModal p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        #notificationModal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--danger);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Forgot password link */
+        .forgot-password {
+            text-align: right;
+            margin-top: -15px;
+            margin-bottom: 20px;
+            color: var(--light);
+            font-size: 0.9rem;
+        }
+
+        .forgot-password a {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        /* Sorting dropdown */
+        .sort-container {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--light);
+            user-select: none;
+        }
+
+        .sort-container label {
+            font-weight: 600;
+        }
+
+        .sort-select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Drop area for image upload */
+        #dropArea {
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        #dropArea:hover, #dropArea.highlight {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        #dropArea p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+            border: 2px solid var(--light);
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
             }
-            
+
             .nav-content {
                 flex-direction: column;
                 gap: 15px;
             }
-            
+
             .nav-links {
                 flex-wrap: wrap;
                 justify-content: center;
             }
-            
+
             .auth-card {
                 padding: 30px 20px;
             }
-            
+
             .dashboard-header h1 {
                 font-size: 2rem;
             }
@@ -485,7 +638,7 @@
 <body>
     <div class="main-background"></div>
     <div class="logo-container">
-        <img src="Alva's_Institution_Logo.png" alt="Alva's Education Foundation Logo">
+        <img src="C:\Users\Student\Downloads\Alva's_Institution_Logo.png" alt="Alva's_Institution_Logo" />
     </div>
 
     <div id="authSection" class="auth-container">
@@ -494,7 +647,7 @@
                 <h1>College Connect</h1>
                 <p>Unified Notification System</p>
             </div>
-            
+
             <form id="loginForm">
                 <div class="form-group">
                     <label for="loginEmail">Email</label>
@@ -504,9 +657,12 @@
                     <label for="loginPassword">Password</label>
                     <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
                 </div>
+                <div class="forgot-password">
+                    <a id="forgotPasswordLink" onclick="showForgotPassword()">Forgot Password?</a>
+                </div>
                 <button type="submit" class="btn btn-primary">Sign In</button>
             </form>
-            
+
             <form id="registerForm" class="hidden">
                 <div class="form-group">
                     <label for="registerName">Full Name</label>
@@ -549,12 +705,24 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Create Account</button>
             </form>
-            
+
             <div class="switch-form">
                 <span id="switchText">Don't have an account? </span>
                 <a id="switchLink" onclick="toggleAuthForm()">Sign up</a>
             </div>
         </div>
+    </div>
+
+    <div id="forgotPasswordModal">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>Reset Password</h3>
+        <form id="forgotPasswordForm">
+            <div class="form-group">
+                <label for="resetEmail">Enter your email</label>
+                <input type="email" id="resetEmail" class="form-control" placeholder="Your registered email" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Send Reset Link</button>
+        </form>
     </div>
 
     <div id="studentDashboard" class="dashboard">
@@ -582,17 +750,24 @@
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Latest Notifications</h2>
-                        <div class="filter-bar">
-                            <button class="filter-btn active" onclick="filterNotifications('all', this)">All</button>
-                            <button class="filter-btn" onclick="filterNotifications('CSE', this)">CSE</button>
-                            <button class="filter-btn" onclick="filterNotifications('ECE', this)">ECE</button>
-                            <button class="filter-btn" onclick="filterNotifications('ME', this)">ME</button>
-                            <button class="filter-btn" onclick="filterNotifications('college', this)">College-wide</button>
+                        <div class="sort-container">
+                            <label for="sortSelect">Sort by:</label>
+                            <select id="sortSelect" class="sort-select">
+                                <option value="date-desc">Latest First</option>
+                                <option value="date-asc">Oldest First</option>
+                                <option value="title">Title</option>
+                            </select>
                         </div>
                     </div>
+                    <div class="filter-bar">
+                        <button class="filter-btn active" onclick="filterNotifications('all', this)">All</button>
+                        <button class="filter-btn" onclick="filterNotifications('CSE', this)">CSE</button>
+                        <button class="filter-btn" onclick="filterNotifications('ECE', this)">ECE</button>
+                        <button class="filter-btn" onclick="filterNotifications('ME', this)">ME</button>
+                        <button class="filter-btn" onclick="filterNotifications('college', this)">College-wide</button>
+                    </div>
                     <ul class="notification-list" id="notificationList">
-                        <!-- Notifications will be populated here -->
-                    </ul>
+                        </ul>
                 </div>
             </div>
 
@@ -602,8 +777,7 @@
                         <h2 class="card-title">Upcoming Events</h2>
                     </div>
                     <ul class="notification-list" id="eventsList">
-                        <!-- Events will be populated here -->
-                    </ul>
+                        </ul>
                 </div>
             </div>
 
@@ -613,8 +787,7 @@
                         <h2 class="card-title">Exam Schedule</h2>
                     </div>
                     <ul class="notification-list" id="examsList">
-                        <!-- Exams will be populated here -->
-                    </ul>
+                        </ul>
                 </div>
             </div>
         </div>
@@ -650,6 +823,14 @@
                         <div class="form-group">
                             <label for="notificationTitle">Title</label>
                             <input type="text" id="notificationTitle" class="form-control" placeholder="Enter notification title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="notificationImage">Image Upload (Optional)</label>
+                            <div id="dropArea">
+                                <p>Drag & Drop an image here or click to select file</p>
+                            </div>
+                            <input type="file" id="notificationImage" class="hidden" accept="image/*">
+                            <img id="imagePreview" src="#" alt="Image Preview" style="display: none;">
                         </div>
                         <div class="form-group">
                             <label for="notificationContent">Content</label>
@@ -688,8 +869,7 @@
                         <h2 class="card-title">Manage Notifications</h2>
                     </div>
                     <ul class="notification-list" id="adminNotificationList">
-                        <!-- Admin notifications will be populated here -->
-                    </ul>
+                        </ul>
                 </div>
             </div>
 
@@ -707,7 +887,15 @@
             </div>
         </div>
     </div>
-    
+
+    <div id="notificationModal">
+        <span class="close-btn" onclick="closeNotificationModal()">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <img id="modalImage" style="display:none;" />
+        <p id="modalContent"></p>
+        <small id="modalMeta"></small>
+    </div>
+
     <div class="overlay" id="overlay"></div>
 
     <script>
@@ -716,6 +904,8 @@
         const adminDashboard = document.getElementById('adminDashboard');
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const forgotPasswordModal = document.getElementById('forgotPasswordModal');
         const switchText = document.getElementById('switchText');
         const switchLink = document.getElementById('switchLink');
         const notificationForm = document.getElementById('notificationForm');
@@ -723,7 +913,18 @@
         const eventsList = document.getElementById('eventsList');
         const examsList = document.getElementById('examsList');
         const adminNotificationList = document.getElementById('adminNotificationList');
-        
+        const notificationModal = document.getElementById('notificationModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalImage = document.getElementById('modalImage');
+        const modalContent = document.getElementById('modalContent');
+        const modalMeta = document.getElementById('modalMeta');
+        const overlay = document.getElementById('overlay');
+        const sortSelect = document.getElementById('sortSelect');
+
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('notificationImage');
+        const imagePreview = document.getElementById('imagePreview');
+
         // Predefined users for demonstration
         const initialUsers = {
             'student@college.edu': { password: 'password', role: 'student', branch: 'CSE', year: '3' },
@@ -733,7 +934,7 @@
         // Load data from localStorage or use initial data
         let users = JSON.parse(localStorage.getItem('users')) || initialUsers;
         let allNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
-        
+
         // Save initial data to localStorage if it doesn't exist
         if (!localStorage.getItem('users')) {
             localStorage.setItem('users', JSON.stringify(initialUsers));
@@ -748,7 +949,9 @@
                     content: 'This is the college notification system. Stay updated with all events and announcements.',
                     type: 'general',
                     audience: 'college',
-                    date: new Date().toLocaleDateString('en-US')
+                    date: new Date().toLocaleDateString('en-US'),
+                    image: 'https://placehold.co/600x300/cccccc/white',
+                    imageAlt: 'Illustration of connected college students collaborating on a project with digital screens'
                 },
                 {
                     id: 2,
@@ -756,7 +959,9 @@
                     content: 'Annual technical fest will be held on December 15-17. Register now!',
                     type: 'event',
                     audience: 'college',
-                    date: new Date(Date.now() + 86400000 * 5).toLocaleDateString('en-US')
+                    date: new Date(Date.now() + 86400000 * 5).toLocaleDateString('en-US'),
+                    image: 'https://placehold.co/600x300/5c8fff/white',
+                    imageAlt: 'Vibrant poster for technical festival with abstract circuit board and technology icons'
                 },
                 {
                     id: 3,
@@ -764,7 +969,9 @@
                     content: 'Semester exams schedule has been announced. Check your department notice board.',
                     type: 'exam',
                     audience: 'college',
-                    date: new Date(Date.now() + 86400000 * 10).toLocaleDateString('en-US')
+                    date: new Date(Date.now() + 86400000 * 10).toLocaleDateString('en-US'),
+                    image: 'https://placehold.co/600x300/ff6b6b/white',
+                    imageAlt: 'Calendar view showing examination dates with book stacks and pencils in background'
                 },
                 {
                     id: 4,
@@ -772,42 +979,33 @@
                     content: 'Workshop on Artificial Intelligence for CSE students on November 30th.',
                     type: 'event',
                     audience: 'CSE',
-                    date: new Date(Date.now() + 86400000 * 2).toLocaleDateString('en-US')
+                    date: new Date(Date.now() + 86400000 * 2).toLocaleDateString('en-US'),
+                    image: 'https://placehold.co/600x300/4ecdc4/white',
+                    imageAlt: 'Workshop scene with presentation screen showing AI code and attendees taking notes'
                 }
             ];
             localStorage.setItem('notifications', JSON.stringify(allNotifications));
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded, rendering dashboards...');
             renderDashboards();
+            sortSelect.addEventListener('change', () => {
+                filterNotifications('all', document.querySelector('.filter-btn.active'));
+            });
         });
 
         function renderDashboards() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            console.log('Rendering dashboards, current user:', currentUser);
-            
-            // Apply initial display states to manage transitions correctly
             if (currentUser) {
                 authSection.style.display = 'none';
                 if (currentUser.role === 'student') {
                     studentDashboard.style.display = 'block';
-                    // Trigger fade-in after a short delay
                     setTimeout(() => studentDashboard.classList.add('visible'), 10);
-                    const userDetails = users[currentUser.email];
-                    if (userDetails) {
-                        console.log('User details:', userDetails);
-                        console.log('All notifications:', allNotifications);
-                        
-                        // Show notifications section by default
-                        showSection('notifications');
-                    }
+                    showSection('notifications');
                 } else if (currentUser.role === 'admin') {
                     adminDashboard.style.display = 'block';
-                    // Trigger fade-in after a short delay
                     setTimeout(() => adminDashboard.classList.add('visible'), 10);
-                    renderAdminNotifications();
-                    updateAnalytics();
+                    showAdminSection('create');
                 }
             } else {
                 authSection.style.display = 'flex';
@@ -829,19 +1027,26 @@
             }
         }
 
+        function showForgotPassword() {
+            forgotPasswordModal.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closeModal() {
+            forgotPasswordModal.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            
+
             if (users[email] && users[email].password === password) {
                 const user = users[email];
-                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: user.role }));
-                
-                // Trigger fade-out on auth section
+                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: user.role, branch: user.branch }));
+
                 authSection.classList.add('fade-out');
-                
-                // Wait for the transition to finish before changing display
                 authSection.addEventListener('transitionend', () => {
                     renderDashboards();
                 }, { once: true });
@@ -875,12 +1080,104 @@
             toggleAuthForm();
         });
 
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('resetEmail').value;
+    
+    // Check if a backend URL is available
+    if (!BACKEND_URL) {
+        alert('This is a demo. Email functionality requires a server.');
+        closeModal();
+        return;
+    }
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/forgot-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(result.message); // e.g., "If an account with this email exists, a reset link has been sent."
+        } else {
+            alert(result.error || 'An error occurred. Please try again.');
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Could not connect to the server. Please try again later.');
+    }
+    
+    closeModal();
+});
+
+        // Drag and drop event listeners
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.add('highlight');
+        });
+
+        dropArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.remove('highlight');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.remove('highlight');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFile(files[0]);
+            }
+        });
+
+        // Click to upload
+        dropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        function handleFile(file) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imagePreview.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                    // Store the Base64 string in a temporary variable before form submission
+                    notificationForm.dataset.image = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please upload a valid image file.');
+                fileInput.value = '';
+                imagePreview.style.display = 'none';
+                notificationForm.dataset.image = '';
+            }
+        }
+
         notificationForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const title = document.getElementById('notificationTitle').value;
             const content = document.getElementById('notificationContent').value;
             const type = document.getElementById('notificationType').value;
             const audience = document.getElementById('notificationAudience').value;
+            const image = notificationForm.dataset.image || null;
 
             const newNotification = {
                 id: Date.now(),
@@ -888,32 +1185,39 @@
                 content,
                 type,
                 audience,
+                image,
+                imageAlt: image ? `${title} related visual content` : null,
                 date: new Date().toLocaleDateString('en-US')
             };
-            
+
             allNotifications.push(newNotification);
             localStorage.setItem('notifications', JSON.stringify(allNotifications));
-            
+
             renderAdminNotifications();
             updateAnalytics();
-            alert('Notification published successfully!');
             notificationForm.reset();
-            renderDashboards();
+            imagePreview.style.display = 'none';
+            notificationForm.dataset.image = '';
         });
 
         function renderNotifications(notifications) {
             notificationList.innerHTML = '';
-            console.log('Rendering notifications:', notifications);
-            
+
             if (notifications.length === 0) {
                 notificationList.innerHTML = '<li class="empty-state">No notifications found</li>';
                 return;
             }
-            
+
             notifications.forEach(note => {
                 const li = document.createElement('li');
                 li.className = 'notification-item';
+                li.onclick = () => openNotificationModal(note);
+                let imageHtml = '';
+                if (note.image) {
+                    imageHtml = `<img src="${note.image}" alt="${note.imageAlt || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+                }
                 li.innerHTML = `
+                    ${imageHtml}
                     <div class="notification-header">
                         <span class="notification-title">${note.title}</span>
                         <span class="notification-meta">${note.date}</span>
@@ -926,17 +1230,22 @@
 
         function renderEvents(events) {
             eventsList.innerHTML = '';
-            console.log('Rendering events:', events);
-            
+
             if (events.length === 0) {
                 eventsList.innerHTML = '<li class="empty-state">No upcoming events</li>';
                 return;
             }
-            
+
             events.forEach(event => {
                 const li = document.createElement('li');
                 li.className = 'notification-item';
+                li.onclick = () => openNotificationModal(event);
+                let imageHtml = '';
+                if (event.image) {
+                    imageHtml = `<img src="${event.image}" alt="${event.imageAlt || 'Event image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+                }
                 li.innerHTML = `
+                    ${imageHtml}
                     <div class="notification-header">
                         <span class="notification-title">${event.title}</span>
                         <span class="notification-meta">${event.date}</span>
@@ -949,17 +1258,22 @@
 
         function renderExams(exams) {
             examsList.innerHTML = '';
-            console.log('Rendering exams:', exams);
-            
+
             if (exams.length === 0) {
                 examsList.innerHTML = '<li class="empty-state">No exam schedule available</li>';
                 return;
             }
-            
+
             exams.forEach(exam => {
                 const li = document.createElement('li');
                 li.className = 'notification-item';
+                li.onclick = () => openNotificationModal(exam);
+                let imageHtml = '';
+                if (exam.image) {
+                    imageHtml = `<img src="${exam.image}" alt="${exam.imageAlt || 'Exam image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+                }
                 li.innerHTML = `
+                    ${imageHtml}
                     <div class="notification-header">
                         <span class="notification-title">${exam.title}</span>
                         <span class="notification-meta">${exam.date}</span>
@@ -970,72 +1284,106 @@
             });
         }
 
+        function openNotificationModal(note) {
+            modalTitle.textContent = note.title;
+            if (note.image) {
+                modalImage.src = note.image;
+                modalImage.alt = note.imageAlt || `${note.title} image`;
+                modalImage.style.display = 'block';
+            } else {
+                modalImage.style.display = 'none';
+            }
+            modalContent.textContent = note.content;
+            modalMeta.textContent = `Date: ${note.date} | Type: ${note.type}`;
+            notificationModal.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closeNotificationModal() {
+            notificationModal.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
         function filterNotifications(audience, button) {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             const userDetails = users[currentUser.email];
-        
-            // Logic to update active button
+
             const allBtns = document.querySelectorAll('.filter-btn');
             allBtns.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            let filtered;
-            if (audience === 'all') {
-                filtered = allNotifications.filter(n => n.audience === 'college' || n.audience === userDetails.branch);
+            let filtered = [...allNotifications];
+
+            if (audience !== 'all') {
+                filtered = filtered.filter(n => n.audience === audience || n.audience === 'college');
             } else {
-                filtered = allNotifications.filter(n => n.audience === audience && (n.type === 'general' || n.type === 'circular'));
+                filtered = filtered.filter(n => n.audience === 'college' || n.audience === userDetails.branch);
             }
-            
-            console.log(`Filtered for audience ${audience}:`, filtered);
+
+            filtered = filtered.filter(n => n.type === 'general' || n.type === 'circular' || n.type === 'event' || n.type === 'exam');
+
+            filtered = sortNotifications(filtered, sortSelect.value);
+
             renderNotifications(filtered);
+        }
+
+        function sortNotifications(notifications, sortBy) {
+            return notifications.slice().sort((a, b) => {
+                if (sortBy === 'date-desc') {
+                    return new Date(b.date) - new Date(a.date);
+                } else if (sortBy === 'date-asc') {
+                    return new Date(a.date) - new Date(b.date);
+                } else if (sortBy === 'title') {
+                    return a.title.localeCompare(b.title);
+                }
+                return 0;
+            });
         }
 
         function renderAdminNotifications() {
             adminNotificationList.innerHTML = '';
-            console.log('Rendering admin notifications:', allNotifications);
-            
+
             if (allNotifications.length === 0) {
                 adminNotificationList.innerHTML = '<li class="empty-state">No notifications created yet</li>';
                 return;
             }
-            
+
             allNotifications.forEach(note => {
                 const li = document.createElement('li');
                 li.className = 'notification-item';
+                li.onclick = () => openNotificationModal(note);
+                let imageHtml = '';
+                if (note.image) {
+                    imageHtml = `<img src="${note.image}" alt="${note.imageAlt || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+                }
                 li.innerHTML = `
+                    ${imageHtml}
                     <div class="notification-header">
                         <span class="notification-title">${note.title}</span>
                         <span class="notification-meta">Audience: ${note.audience.toUpperCase()} | Type: ${note.type}</span>
                     </div>
                     <p class="notification-content">${note.content}</p>
-                    <button class="btn btn-danger" onclick="deleteNotification(${note.id})">Delete</button>
+                    <button class="btn btn-danger" onclick="deleteNotification(${note.id}, event)">Delete</button>
                 `;
                 adminNotificationList.appendChild(li);
             });
         }
 
-        function deleteNotification(id) {
+        function deleteNotification(id, event) {
+            event.stopPropagation();
             allNotifications = allNotifications.filter(note => note.id !== id);
             localStorage.setItem('notifications', JSON.stringify(allNotifications));
-            
             renderAdminNotifications();
             updateAnalytics();
-            renderDashboards();
         }
 
         function updateAnalytics() {
-            const totalNotifications = allNotifications.length;
-            const totalEvents = allNotifications.filter(n => n.type === 'event').length;
-            const totalExams = allNotifications.filter(n => n.type === 'exam').length;
-            
-            document.getElementById('totalNotifications').textContent = totalNotifications;
-            document.getElementById('totalEvents').textContent = totalEvents;
-            document.getElementById('totalExams').textContent = totalExams;
+            document.getElementById('totalNotifications').textContent = allNotifications.length;
+            document.getElementById('totalEvents').textContent = allNotifications.filter(n            => n.type === 'event').length;
+            document.getElementById('totalExams').textContent = allNotifications.filter(n => n.type === 'exam').length;
         }
 
         function showSection(sectionId) {
-            console.log('Switching to section:', sectionId);
-            
             // Hide all sections first
             document.getElementById('notificationsSection').classList.add('hidden');
             document.getElementById('eventsSection').classList.add('hidden');
@@ -1044,21 +1392,19 @@
             // Show the selected section
             document.getElementById(sectionId + 'Section').classList.remove('hidden');
 
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (currentUser && currentUser.role === 'student') {
+            const currentUser  = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser  && currentUser .role === 'student') {
                 const userDetails = users[currentUser.email];
                 if (userDetails) {
                     if (sectionId === 'notifications') {
-                        const filteredNotifications = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular'));
-                        console.log('Filtered notifications:', filteredNotifications);
-                        renderNotifications(filteredNotifications);
+                        const filteredNotifications = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular' || n.type === 'event' || n.type === 'exam'));
+                        const sorted = sortNotifications(filteredNotifications, sortSelect.value);
+                        renderNotifications(sorted);
                     } else if (sectionId === 'events') {
                         const filteredEvents = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'event');
-                        console.log('Filtered events:', filteredEvents);
                         renderEvents(filteredEvents);
                     } else if (sectionId === 'exams') {
                         const filteredExams = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'exam');
-                        console.log('Filtered exams:', filteredExams);
                         renderExams(filteredExams);
                     }
                 }
@@ -1066,12 +1412,10 @@
         }
 
         function showAdminSection(sectionId) {
-            console.log('Switching to admin section:', sectionId);
-            
             document.getElementById('createSection').classList.add('hidden');
             document.getElementById('manageSection').classList.add('hidden');
             document.getElementById('analyticsSection').classList.add('hidden');
-            
+
             document.getElementById(sectionId + 'Section').classList.remove('hidden');
 
             if (sectionId === 'manage') {
@@ -1080,14 +1424,14 @@
                 updateAnalytics();
             }
         }
-        
+
         function logout() {
             const currentDashboard = studentDashboard.style.display === 'block' ? studentDashboard : adminDashboard;
-            
+
             // Trigger fade-out on current dashboard
             currentDashboard.classList.remove('visible');
             currentDashboard.classList.add('fade-out');
-            
+
             // Wait for the transition to finish before changing display
             currentDashboard.addEventListener('transitionend', () => {
                 localStorage.removeItem('currentUser');
@@ -1096,9 +1440,12 @@
                 renderDashboards();
             }, { once: true });
         }
+
+        // Close modals on overlay click
+        overlay.addEventListener('click', () => {
+            closeNotificationModal();
+            closeModal();
+        });
     </script>
 </body>
 </html>
-
-
-

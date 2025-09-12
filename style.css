@@ -72,7 +72,7 @@ body {
 }
 
 .auth-card {
-    background: rgba(55, 55, 55, 0.15);
+    background: rgba(200, 200, 200, 0.15);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-radius: 20px;

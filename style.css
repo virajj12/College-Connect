@@ -11,7 +11,7 @@
 }
 
 * {
-    margin: 0;
+    margin: 0;0
     padding: 0;
     box-sizing: border-box;
 }
@@ -72,7 +72,7 @@ body {
 }
 
 .auth-card {
-    background: rgba(200, 200, 200, 0.15);
+    background: rgba(80, 80, 80, 0.15);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-radius: 20px;

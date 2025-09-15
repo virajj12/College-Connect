@@ -6,7 +6,6 @@
     --dark: #1e293b;
     --success: #10b981;
     --warning: #f59e0b;
-    --danger: #ef4444;
     --gray: #64748b;
 }
 
@@ -165,7 +164,9 @@ body {
 }
 
 .btn-danger {
-    background: var(--danger);
+	backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    background: linear-gradient(45deg,rgba(255, 0, 0, 0.5),rgba(239, 68, 68, 0.5));
     color: white;
 }
 
@@ -624,7 +625,7 @@ body {
 
 /* Utility Classes */
 .text-center { text-align: center; }
-.mb-20 { margin-bottom: 20px; }
+.mb-20 { margin-bottom: 20px; color: white }
 .mt-20 { margin-top: 20px; }
 /* The hidden class is now purely for display: none */
 .hidden { display: none; }

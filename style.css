@@ -127,6 +127,9 @@ body {
     outline: none;
     border-color: var(--primary);
 }
+.form-control option {
+	color: black;
+}
 
 .btn {
     padding: 12px 24px;

@@ -21,7 +21,8 @@ const overlay = document.getElementById('overlay');
 const sortSelect = document.getElementById('sortSelect');
 
 const dropArea = document.getElementById('dropArea');
-const fileInput = document.getElementById('notificationImage');
+// Updated: Use a new input for PDFs and a different one for images
+const fileInput = document.getElementById('notificationFile'); // This will handle both images and PDFs
 const imagePreview = document.getElementById('imagePreview');
 
 // Predefined users for demonstration
@@ -49,8 +50,7 @@ if (!localStorage.getItem('notifications')) {
             type: 'general',
             audience: 'college',
             date: new Date().toLocaleDateString('en-US'),
-            image: 'https://placehold.co/600x300/cccccc/white',
-            imageAlt: 'Illustration of connected college students collaborating on a project with digital screens'
+            file: { type: 'image', data: 'https://placehold.co/600x300/cccccc/white', alt: 'Illustration of connected college students collaborating on a project with digital screens' }
         },
         {
             id: 2,
@@ -59,8 +59,7 @@ if (!localStorage.getItem('notifications')) {
             type: 'event',
             audience: 'college',
             date: new Date(Date.now() + 86400000 * 5).toLocaleDateString('en-US'),
-            image: 'https://placehold.co/600x300/5c8fff/white',
-            imageAlt: 'Vibrant poster for technical festival with abstract circuit board and technology icons'
+            file: { type: 'image', data: 'https://placehold.co/600x300/5c8fff/white', alt: 'Vibrant poster for technical festival with abstract circuit board and technology icons' }
         },
         {
             id: 3,
@@ -69,8 +68,7 @@ if (!localStorage.getItem('notifications')) {
             type: 'exam',
             audience: 'college',
             date: new Date(Date.now() + 86400000 * 10).toLocaleDateString('en-US'),
-            image: 'https://placehold.co/600x300/ff6b6b/white',
-            imageAlt: 'Calendar view showing examination dates with book stacks and pencils in background'
+            file: { type: 'image', data: 'https://placehold.co/600x300/ff6b6b/white', alt: 'Calendar view showing examination dates with book stacks and pencils in background' }
         },
         {
             id: 4,
@@ -79,8 +77,16 @@ if (!localStorage.getItem('notifications')) {
             type: 'event',
             audience: 'CSE',
             date: new Date(Date.now() + 86400000 * 2).toLocaleDateString('en-US'),
-            image: 'https://placehold.co/600x300/4ecdc4/white',
-            imageAlt: 'Workshop scene with presentation screen showing AI code and attendees taking notes'
+            file: { type: 'image', data: 'https://placehold.co/600x300/4ecdc4/white', alt: 'Workshop scene with presentation screen showing AI code and attendees taking notes' }
+        },
+        {
+            id: 5,
+            title: 'New Student Handbook',
+            content: 'The updated student handbook for 2024-2025 is now available.',
+            type: 'general',
+            audience: 'college',
+            date: new Date().toLocaleDateString('en-US'),
+            file: { type: 'pdf', data: 'assets/sample.pdf' }
         }
     ];
     localStorage.setItem('notifications', JSON.stringify(allNotifications));
@@ -252,21 +258,40 @@ fileInput.addEventListener('change', (e) => {
     }
 });
 
+// Updated: handleFile now checks for PDF or image
 function handleFile(file) {
+    // Clear previous state
+    imagePreview.style.display = 'none';
+    notificationForm.dataset.fileType = '';
+    notificationForm.dataset.fileData = '';
+
+    const dropText = dropArea.querySelector('.drop-text');
+
     if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (event) => {
             imagePreview.src = event.target.result;
             imagePreview.style.display = 'block';
-            // Store the Base64 string in a temporary variable before form submission
-            notificationForm.dataset.image = event.target.result;
+            dropText.textContent = file.name;
+            notificationForm.dataset.fileType = 'image';
+            notificationForm.dataset.fileData = event.target.result;
         };
         reader.readAsDataURL(file);
+    } else if (file.type === 'application/pdf') {
+        dropText.textContent = file.name;
+        notificationForm.dataset.fileType = 'pdf';
+        // Use a simple data URI for a PDF, or you could read it as base64
+        // For a full-scale app, you'd upload this to a server
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            notificationForm.dataset.fileData = event.target.result;
+        };
+        reader.readAsDataURL(file);
+        
     } else {
-        alert('Please upload a valid image file.');
+        alert('Please upload a valid image or PDF file.');
         fileInput.value = '';
-        imagePreview.style.display = 'none';
-        notificationForm.dataset.image = '';
+        dropText.textContent = 'Drag & drop image or PDF here, or click to browse';
     }
 }
 
@@ -276,7 +301,9 @@ notificationForm.addEventListener('submit', (e) => {
     const content = document.getElementById('notificationContent').value;
     const type = document.getElementById('notificationType').value;
     const audience = document.getElementById('notificationAudience').value;
-    const image = notificationForm.dataset.image || null;
+
+    const fileType = notificationForm.dataset.fileType || null;
+    const fileData = notificationForm.dataset.fileData || null;
 
     const newNotification = {
         id: Date.now(),
@@ -284,9 +311,8 @@ notificationForm.addEventListener('submit', (e) => {
         content,
         type,
         audience,
-        image,
-        imageAlt: image ? `${title} related visual content` : null,
-        date: new Date().toLocaleDateString('en-US')
+        date: new Date().toLocaleDateString('en-US'),
+        file: fileData ? { type: fileType, data: fileData, alt: title ? `${title} related visual content` : null } : null
     };
 
     allNotifications.push(newNotification);
@@ -296,9 +322,11 @@ notificationForm.addEventListener('submit', (e) => {
     updateAnalytics();
     notificationForm.reset();
     imagePreview.style.display = 'none';
-    notificationForm.dataset.image = '';
+    const dropText = dropArea.querySelector('.drop-text');
+    dropText.textContent = 'Drag & drop image or PDF here, or click to browse';
 });
 
+// Updated: Render function now handles different file types
 function renderNotifications(notifications) {
     notificationList.innerHTML = '';
 
@@ -311,12 +339,16 @@ function renderNotifications(notifications) {
         const li = document.createElement('li');
         li.className = 'notification-item';
         li.onclick = () => openNotificationModal(note);
-        let imageHtml = '';
-        if (note.image) {
-            imageHtml = `<img src="${note.image}" alt="${note.imageAlt || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+        let fileHtml = '';
+        if (note.file) {
+            if (note.file.type === 'image') {
+                fileHtml = `<img src="${note.file.data}" alt="${note.file.alt || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            } else if (note.file.type === 'pdf') {
+                fileHtml = `<img src="https://via.placeholder.com/50/FF5733/FFFFFF?text=PDF" alt="PDF icon" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            }
         }
         li.innerHTML = `
-            ${imageHtml}
+            ${fileHtml}
             <div class="notification-header">
                 <span class="notification-title">${note.title}</span>
                 <span class="notification-meta">${note.date}</span>
@@ -327,24 +359,27 @@ function renderNotifications(notifications) {
     });
 }
 
+// Updated: Render events and exams with new file handling
 function renderEvents(events) {
     eventsList.innerHTML = '';
-
     if (events.length === 0) {
         eventsList.innerHTML = '<li class="empty-state">No upcoming events</li>';
         return;
     }
-
     events.forEach(event => {
         const li = document.createElement('li');
         li.className = 'notification-item';
         li.onclick = () => openNotificationModal(event);
-        let imageHtml = '';
-        if (event.image) {
-            imageHtml = `<img src="${event.image}" alt="${event.imageAlt || 'Event image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+        let fileHtml = '';
+        if (event.file) {
+            if (event.file.type === 'image') {
+                fileHtml = `<img src="${event.file.data}" alt="${event.file.alt || 'Event image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            } else if (event.file.type === 'pdf') {
+                fileHtml = `<img src="https://via.placeholder.com/50/FF5733/FFFFFF?text=PDF" alt="PDF icon" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            }
         }
         li.innerHTML = `
-            ${imageHtml}
+            ${fileHtml}
             <div class="notification-header">
                 <span class="notification-title">${event.title}</span>
                 <span class="notification-meta">${event.date}</span>
@@ -357,22 +392,24 @@ function renderEvents(events) {
 
 function renderExams(exams) {
     examsList.innerHTML = '';
-
     if (exams.length === 0) {
         examsList.innerHTML = '<li class="empty-state">No exam schedule available</li>';
         return;
     }
-
     exams.forEach(exam => {
         const li = document.createElement('li');
         li.className = 'notification-item';
         li.onclick = () => openNotificationModal(exam);
-        let imageHtml = '';
-        if (exam.image) {
-            imageHtml = `<img src="${exam.image}" alt="${exam.imageAlt || 'Exam image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+        let fileHtml = '';
+        if (exam.file) {
+            if (exam.file.type === 'image') {
+                fileHtml = `<img src="${exam.file.data}" alt="${exam.file.alt || 'Exam image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            } else if (exam.file.type === 'pdf') {
+                fileHtml = `<img src="https://via.placeholder.com/50/FF5733/FFFFFF?text=PDF" alt="PDF icon" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            }
         }
         li.innerHTML = `
-            ${imageHtml}
+            ${fileHtml}
             <div class="notification-header">
                 <span class="notification-title">${exam.title}</span>
                 <span class="notification-meta">${exam.date}</span>
@@ -383,17 +420,42 @@ function renderExams(exams) {
     });
 }
 
+// Updated: Modal now displays image or PDF link
 function openNotificationModal(note) {
     modalTitle.textContent = note.title;
-    if (note.image) {
-        modalImage.src = note.image;
-        modalImage.alt = note.imageAlt || `${note.title} image`;
-        modalImage.style.display = 'block';
-    } else {
-        modalImage.style.display = 'none';
-    }
     modalContent.textContent = note.content;
     modalMeta.textContent = `Date: ${note.date} | Type: ${note.type}`;
+
+    if (note.file) {
+        if (note.file.type === 'image') {
+            modalImage.src = note.file.data;
+            modalImage.alt = note.file.alt || `${note.title} image`;
+            modalImage.style.display = 'block';
+            // Hide any PDF link
+            const pdfLink = document.getElementById('modalPdfLink');
+            if (pdfLink) pdfLink.style.display = 'none';
+        } else if (note.file.type === 'pdf') {
+            // Hide the image
+            modalImage.style.display = 'none';
+            // Create or update a link for the PDF
+            let pdfLink = document.getElementById('modalPdfLink');
+            if (!pdfLink) {
+                pdfLink = document.createElement('a');
+                pdfLink.id = 'modalPdfLink';
+                pdfLink.target = '_blank';
+                pdfLink.className = 'btn btn-primary mt-3';
+                pdfLink.textContent = 'View PDF File';
+                modalContent.parentNode.insertBefore(pdfLink, modalContent.nextSibling);
+            }
+            pdfLink.href = note.file.data;
+            pdfLink.style.display = 'block';
+        }
+    } else {
+        modalImage.style.display = 'none';
+        const pdfLink = document.getElementById('modalPdfLink');
+        if (pdfLink) pdfLink.style.display = 'none';
+    }
+
     notificationModal.style.display = 'block';
     overlay.style.display = 'block';
 }
@@ -431,7 +493,7 @@ function sortNotifications(notifications, sortBy) {
         if (sortBy === 'date-desc') {
             return new Date(b.date) - new Date(a.date);
         } else if (sortBy === 'date-asc') {
-            return new Date(a.date) - new Date(b.date);
+            return new Date(a.date) - new Date(a.date);
         } else if (sortBy === 'title') {
             return a.title.localeCompare(b.title);
         }
@@ -439,6 +501,7 @@ function sortNotifications(notifications, sortBy) {
     });
 }
 
+// Updated: Admin view also handles new file types
 function renderAdminNotifications() {
     adminNotificationList.innerHTML = '';
 
@@ -451,12 +514,16 @@ function renderAdminNotifications() {
         const li = document.createElement('li');
         li.className = 'notification-item';
         li.onclick = () => openNotificationModal(note);
-        let imageHtml = '';
-        if (note.image) {
-            imageHtml = `<img src="${note.image}" alt="${note.imageAlt || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+        let fileHtml = '';
+        if (note.file) {
+            if (note.file.type === 'image') {
+                fileHtml = `<img src="${note.file.data}" alt="${note.file.alt || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            } else if (note.file.type === 'pdf') {
+                fileHtml = `<img src="https://via.placeholder.com/50/FF5733/FFFFFF?text=PDF" alt="PDF icon" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            }
         }
         li.innerHTML = `
-            ${imageHtml}
+            ${fileHtml}
             <div class="notification-header">
                 <span class="notification-title">${note.title}</span>
                 <span class="notification-meta">Audience: ${note.audience.toUpperCase()} | Type: ${note.type}</span>

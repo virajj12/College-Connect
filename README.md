@@ -33,10 +33,7 @@ Experience the application live here:
 
 To explore the application's full functionality, use the following predefined users:
 
-| Role | Email | Password | Details |
-| :--- | :--- | :--- | :--- |
-| **Student** | `student@college.edu` | `password` | Registered as 3rd Year, CSE Branch |
-| **Admin** | `admin@college.edu` | `password` | Full administrative privileges |
+
 
 ## 🛠️ Tech Stack
 

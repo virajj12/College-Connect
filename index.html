@@ -132,11 +132,11 @@
                         </div>
                     </div>
                     <div class="filter-bar">
-                        <button class="filter-btn active" onclick="filterNotifications('all', this)">All</button>
-                        <button class="filter-btn" onclick="filterNotifications('CSE', this)">CSE</button>
-                        <button class="filter-btn" onclick="filterNotifications('ECE', this)">ECE</button>
-                        <button class="filter-btn" onclick="filterNotifications('ME', this)">ME</button>
-                        <button class="filter-btn" onclick="filterNotifications('college', this)">College-wide</button>
+                        <button class="filter-btn active" onclick="filterNotifications('all', this)" data-audience="all">All</button>
+                        <button class="filter-btn" onclick="filterNotifications('CSE', this)" data-audience="CSE">CSE</button>
+                        <button class="filter-btn" onclick="filterNotifications('ECE', this)" data-audience="ECE">ECE</button>
+                        <button class="filter-btn" onclick="filterNotifications('ME', this)" data-audience="ME">ME</button>
+                        <button class="filter-btn" onclick="filterNotifications('college', this)" data-audience="College-wide">College-wide</button>
                     </div>
                     <ul class="notification-list" id="notificationList">
                     </ul>

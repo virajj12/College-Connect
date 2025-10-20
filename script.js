@@ -24,17 +24,21 @@ const dropArea = document.getElementById('dropArea');
 const fileInput = document.getElementById('notificationImage');
 const imagePreview = document.getElementById('imagePreview');
 
+
+const API_BASE_URL = 'http://localhost:5000/api';
+
 // Predefined users for demonstration
-const initialUsers = {
+/*const initialUsers = {
     'student@college.edu': { password: 'password', role: 'student', branch: 'CSE', year: '3' },
     'admin@college.edu': { password: 'password', role: 'admin' }
-};
+};*/
 
 // Load data from localStorage or use initial data
-let users = JSON.parse(localStorage.getItem('users')) || initialUsers;
-let allNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
+//let users = JSON.parse(localStorage.getItem('users')) || initialUsers;
+//let allNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
 
 // Save initial data to localStorage if it doesn't exist
+/*
 if (!localStorage.getItem('users')) {
     localStorage.setItem('users', JSON.stringify(initialUsers));
 }
@@ -84,7 +88,7 @@ if (!localStorage.getItem('notifications')) {
         }
     ];
     localStorage.setItem('notifications', JSON.stringify(allNotifications));
-}
+}*/
 
 document.addEventListener('DOMContentLoaded', () => {
     renderDashboards();
@@ -93,18 +97,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function renderDashboards() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser) {
-        authSection.style.display = 'none';
-        if (currentUser.role === 'student') {
-            studentDashboard.style.display = 'block';
-            setTimeout(() => studentDashboard.classList.add('visible'), 10);
-            showSection('notifications');
-        } else if (currentUser.role === 'admin') {
-            adminDashboard.style.display = 'block';
-            setTimeout(() => adminDashboard.classList.add('visible'), 10);
-            showAdminSection('create');
+async function renderDashboards() {
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/user`, {
+                headers: {
+                    'x-auth-token': token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Token invalid or expired');
+            }
+
+            const currentUser = await response.json();
+            
+            // Store user details (except token) for client-side use
+            localStorage.setItem('currentUserDetails', JSON.stringify(currentUser)); 
+
+            authSection.style.display = 'none';
+            if (currentUser.role === 'student') {
+                studentDashboard.style.display = 'block';
+                setTimeout(() => studentDashboard.classList.add('visible'), 10);
+                showSection('notifications', currentUser.branch);
+            } else if (currentUser.role === 'admin') {
+                adminDashboard.style.display = 'block';
+                setTimeout(() => adminDashboard.classList.add('visible'), 10);
+                showAdminSection('create');
+            }
+        } catch (error) {
+            console.error(error);
+            // If token is invalid, clear storage and show auth section
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUserDetails');
+            authSection.style.display = 'flex';
         }
     } else {
         authSection.style.display = 'flex';
@@ -136,47 +164,65 @@ function closeModal() {
     overlay.style.display = 'none';
 }
 
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => { // ADD 'async' here
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
-    if (users[email] && users[email].password === password) {
-        const user = users[email];
-        localStorage.setItem('currentUser', JSON.stringify({ email: email, role: user.role, branch: user.branch }));
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
 
-        authSection.classList.add('fade-out');
-        authSection.addEventListener('transitionend', () => {
-            renderDashboards();
-        }, { once: true });
-    } else {
-        alert('Invalid email or password.');
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('token', data.token);
+            
+            authSection.classList.add('fade-out');
+            authSection.addEventListener('transitionend', () => {
+                renderDashboards();
+            }, { once: true });
+        } else {
+            alert(data.msg || 'Invalid email or password.');
+        }
+    } catch (error) {
+        alert('Could not connect to the server.');
     }
 });
 
-registerForm.addEventListener('submit', (e) => {
+registerForm.addEventListener('submit', async (e) => { // ADD 'async' here
     e.preventDefault();
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
     const branch = document.getElementById('registerBranch').value;
     const year = document.getElementById('registerYear').value;
-    const role = document.getElementById('registerRole').value;
+    // role is automatically 'student'
 
-    if (users[email]) {
-        alert('An account with this email already exists.');
-        return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password, branch, year })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Account created successfully! Please sign in.');
+            toggleAuthForm();
+        } else {
+            alert(data.msg || 'An error occurred during registration.');
+        }
+    } catch (error) {
+        alert('Could not connect to the server.');
     }
-
-    const newUser = {
-        password: password,
-        role: role,
-        branch: branch,
-        year: year
-    };
-    users[email] = newUser;
-    localStorage.setItem('users', JSON.stringify(users));
-    alert('Account created successfully! You can now sign in.');
-    toggleAuthForm();
 });
 
 forgotPasswordForm.addEventListener('submit', async (e) => {
@@ -270,34 +316,80 @@ function handleFile(file) {
     }
 }
 
-notificationForm.addEventListener('submit', (e) => {
+notificationForm.addEventListener('submit', async (e) => { // ADD 'async' here
     e.preventDefault();
     const title = document.getElementById('notificationTitle').value;
     const content = document.getElementById('notificationContent').value;
     const type = document.getElementById('notificationType').value;
     const audience = document.getElementById('notificationAudience').value;
-    const image = notificationForm.dataset.image || null;
+    const image = notificationForm.dataset.image || null; // Base64 string
 
-    const newNotification = {
-        id: Date.now(),
-        title,
-        content,
-        type,
-        audience,
-        image,
-        imageAlt: image ? `${title} related visual content` : null,
-        date: new Date().toLocaleDateString('en-US')
-    };
+    const token = localStorage.getItem('token');
+    if (!token) return logout();
 
-    allNotifications.push(newNotification);
-    localStorage.setItem('notifications', JSON.stringify(allNotifications));
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': token
+            },
+            body: JSON.stringify({ title, content, type, audience, image })
+        });
 
-    renderAdminNotifications();
-    updateAnalytics();
-    notificationForm.reset();
-    imagePreview.style.display = 'none';
-    notificationForm.dataset.image = '';
+        if (response.ok) {
+            alert('Notification Published Successfully!');
+            notificationForm.reset();
+            imagePreview.style.display = 'none';
+            notificationForm.dataset.image = '';
+            // Optional: Reload the management section if admin is on that view
+            if (document.getElementById('manageSection').classList.contains('hidden')) {
+                 renderAdminNotifications(); // Fetches and updates the list
+            }
+        } else {
+            const error = await response.json();
+            alert(`Failed to publish: ${error.msg}`);
+        }
+    } catch (error) {
+        alert('Network error. Check backend server.');
+    }
 });
+
+async function fetchNotifications(type, audience = null) {
+    const token = localStorage.getItem('token');
+    if (!token) return logout();
+
+    let url = `${API_BASE_URL}/notifications?type=${type}`;
+    if (audience && audience !== 'all') {
+        url += `&audience=${audience}`;
+    }
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'x-auth-token': token
+            }
+        });
+
+        if (response.ok) {
+            let notifications = await response.json();
+            
+            // Apply client-side sorting (optional, can be done on server too)
+            notifications = sortNotifications(notifications, sortSelect.value);
+            
+            // Only store the fetched data in this scope, no global 'allNotifications' needed.
+            return notifications;
+        } else {
+            alert('Failed to load notifications. Session expired. Please log in.');
+            logout();
+            return [];
+        }
+    } catch (error) {
+        console.error('Fetch Error:', error);
+        alert('Network error. Check server connection.');
+        return [];
+    }
+}
 
 function renderNotifications(notifications) {
     notificationList.innerHTML = '';
@@ -403,27 +495,51 @@ function closeNotificationModal() {
     overlay.style.display = 'none';
 }
 
-function filterNotifications(audience, button) {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const userDetails = users[currentUser.email];
-
+async function filterNotifications(audience, button) { // ADD 'async' here
     const allBtns = document.querySelectorAll('.filter-btn');
     allBtns.forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
 
-    let filtered = [...allNotifications];
+    const token = localStorage.getItem('token');
+    if (!token) return logout();
 
-    if (audience !== 'all') {
-        filtered = filtered.filter(n => n.audience === audience || n.audience === 'college');
-    } else {
-        filtered = filtered.filter(n => n.audience === 'college' || n.audience === userDetails.branch);
+    try {
+        let url = `${API_BASE_URL}/notifications?type=general`;
+        
+        // The API already handles filtering by branch and college-wide
+        if (audience !== 'all') {
+            // The logic here is complex in the client. The new API logic will handle this
+            // by simply fetching everything for the user's branch + college-wide, and the 
+            // filter buttons will just re-render/filter the results.
+            
+            // To be purely API-driven for sorting, we'll refetch and sort on the client:
+            const response = await fetch(url, {
+                headers: { 'x-auth-token': token }
+            });
+
+            if (response.ok) {
+                let filtered = await response.json();
+                
+                // Client-side filtering to match the old logic:
+                if (audience !== 'all') {
+                    // Filter down to only college-wide or the specified branch for the button click
+                    filtered = filtered.filter(n => n.audience === 'college' || n.audience === audience);
+                }
+
+                filtered = sortNotifications(filtered, sortSelect.value);
+                renderNotifications(filtered);
+            }
+
+        } else {
+             // For 'All', fetch the standard user view and filter/render it.
+            const filtered = await fetchNotifications('general');
+            renderNotifications(filtered);
+        }
+
+    } catch (error) {
+        console.error('Filter Error:', error);
+        alert('Could not update filter.');
     }
-
-    filtered = filtered.filter(n => n.type === 'general' || n.type === 'circular' || n.type === 'event' || n.type === 'exam');
-
-    filtered = sortNotifications(filtered, sortSelect.value);
-
-    renderNotifications(filtered);
 }
 
 function sortNotifications(notifications, sortBy) {
@@ -439,50 +555,97 @@ function sortNotifications(notifications, sortBy) {
     });
 }
 
-function renderAdminNotifications() {
+async function renderAdminNotifications() { // ADD 'async' here
     adminNotificationList.innerHTML = '';
+    const token = localStorage.getItem('token');
+    if (!token) return logout();
 
-    if (allNotifications.length === 0) {
-        adminNotificationList.innerHTML = '<li class="empty-state">No notifications created yet</li>';
-        return;
-    }
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications/manage`, {
+            headers: { 'x-auth-token': token }
+        });
 
-    allNotifications.forEach(note => {
-        const li = document.createElement('li');
-        li.className = 'notification-item';
-        li.onclick = () => openNotificationModal(note);
-        let imageHtml = '';
-        if (note.image) {
-            imageHtml = `<img src="${note.image}" alt="${note.imageAlt || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+        const allNotifications = await response.json();
+
+        if (allNotifications.length === 0) {
+            adminNotificationList.innerHTML = '<li class="empty-state">No notifications created yet</li>';
+            return;
         }
-        li.innerHTML = `
-            ${imageHtml}
-            <div class="notification-header">
-                <span class="notification-title">${note.title}</span>
-                <span class="notification-meta">Audience: ${note.audience.toUpperCase()} | Type: ${note.type}</span>
-            </div>
-            <p class="notification-content">${note.content}</p>
-            <button class="btn btn-danger" onclick="deleteNotification(${note.id}, event)">Delete</button>
-        `;
-        adminNotificationList.appendChild(li);
-    });
+
+        allNotifications.forEach(note => {
+            const li = document.createElement('li');
+            li.className = 'notification-item';
+            li.onclick = () => openNotificationModal(note);
+            let imageHtml = '';
+            if (note.image) {
+                // The image source is the Base64 string from the server
+                imageHtml = `<img src="${note.image}" alt="${note.title || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            }
+            // Note: The delete button MUST use event.stopPropagation() to prevent the modal from opening
+            li.innerHTML = `
+                ${imageHtml}
+                <div class="notification-header">
+                    <span class="notification-title">${note.title}</span>
+                    <span class="notification-meta">Audience: ${note.audience.toUpperCase()} | Type: ${note.type}</span>
+                </div>
+                <p class="notification-content">${note.content}</p>
+                <button class="btn btn-danger" onclick="deleteNotification('${note._id}', event)">Delete</button>
+            `;
+            adminNotificationList.appendChild(li);
+        });
+
+    } catch (error) {
+        adminNotificationList.innerHTML = '<li class="empty-state">Error fetching notifications.</li>';
+    }
 }
 
-function deleteNotification(id, event) {
+async function deleteNotification(id, event) { // ADD 'async' here
     event.stopPropagation();
-    allNotifications = allNotifications.filter(note => note.id !== id);
-    localStorage.setItem('notifications', JSON.stringify(allNotifications));
-    renderAdminNotifications();
-    updateAnalytics();
+    const token = localStorage.getItem('token');
+    if (!token) return logout();
+
+    if (confirm('Are you sure you want to delete this notification?')) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/notifications/${id}`, {
+                method: 'DELETE',
+                headers: { 'x-auth-token': token }
+            });
+
+            if (response.ok) {
+                alert('Notification deleted.');
+                renderAdminNotifications(); // Reload list
+                updateAnalytics(); // Update counts
+            } else {
+                alert('Failed to delete notification.');
+            }
+        } catch (error) {
+            alert('Network error during deletion.');
+        }
+    }
 }
 
-function updateAnalytics() {
-    document.getElementById('totalNotifications').textContent = allNotifications.length;
-    document.getElementById('totalEvents').textContent = allNotifications.filter(n => n.type === 'event').length;
-    document.getElementById('totalExams').textContent = allNotifications.filter(n => n.type === 'exam').length;
+async function updateAnalytics() { // ADD 'async' here
+    const token = localStorage.getItem('token');
+    if (!token) return logout();
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications/analytics`, {
+            headers: { 'x-auth-token': token }
+        });
+        
+        const data = await response.json();
+        
+        document.getElementById('totalNotifications').textContent = data.totalNotifications;
+        document.getElementById('totalEvents').textContent = data.totalEvents;
+        document.getElementById('totalExams').textContent = data.totalExams;
+    } catch (error) {
+         document.getElementById('totalNotifications').textContent = 'N/A';
+         document.getElementById('totalEvents').textContent = 'N/A';
+         document.getElementById('totalExams').textContent = 'N/A';
+    }
 }
 
-function showSection(sectionId) {
+async function showSection(sectionId) { // ADD 'async' here
     // Hide all sections first
     document.getElementById('notificationsSection').classList.add('hidden');
     document.getElementById('eventsSection').classList.add('hidden');
@@ -491,23 +654,26 @@ function showSection(sectionId) {
     // Show the selected section
     document.getElementById(sectionId + 'Section').classList.remove('hidden');
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser && currentUser.role === 'student') {
-        const userDetails = users[currentUser.email];
-        if (userDetails) {
-            if (sectionId === 'notifications') {
-                const filteredNotifications = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && (n.type === 'general' || n.type === 'circular' || n.type === 'event' || n.type === 'exam'));
-                const sorted = sortNotifications(filteredNotifications, sortSelect.value);
-                renderNotifications(sorted);
-            } else if (sectionId === 'events') {
-                const filteredEvents = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'event');
-                renderEvents(filteredEvents);
-            } else if (sectionId === 'exams') {
-                const filteredExams = allNotifications.filter(n => (n.audience === 'college' || n.audience === userDetails.branch) && n.type === 'exam');
-                renderExams(filteredExams);
-            }
+    const userDetails = JSON.parse(localStorage.getItem('currentUserDetails'));
+    if (userDetails && userDetails.role === 'student') {
+        let fetchedData = [];
+
+        // Determine which data to fetch based on sectionId
+        if (sectionId === 'notifications') {
+            fetchedData = await fetchNotifications('general'); // Fetches general + circulars
+            renderNotifications(fetchedData);
+            // Re-render based on filter if already active (e.g., sort change)
+            filterNotifications(document.querySelector('.filter-btn.active').dataset.audience, document.querySelector('.filter-btn.active'));
+            
+        } else if (sectionId === 'events') {
+            fetchedData = await fetchNotifications('event');
+            renderEvents(fetchedData);
+        } else if (sectionId === 'exams') {
+            fetchedData = await fetchNotifications('exam');
+            renderExams(fetchedData);
         }
     }
+    // Note: filterNotifications and sortNotifications functions no longer need the global 'allNotifications' array.
 }
 
 function showAdminSection(sectionId) {
@@ -527,16 +693,17 @@ function showAdminSection(sectionId) {
 function logout() {
     const currentDashboard = studentDashboard.style.display === 'block' ? studentDashboard : adminDashboard;
 
-    // Trigger fade-out on current dashboard
     currentDashboard.classList.remove('visible');
     currentDashboard.classList.add('fade-out');
 
-    // Wait for the transition to finish before changing display
     currentDashboard.addEventListener('transitionend', () => {
-        localStorage.removeItem('currentUser');
+        // Clear all local user data
+        localStorage.removeItem('token');
+        localStorage.removeItem('currentUserDetails'); 
+        
         currentDashboard.style.display = 'none';
         currentDashboard.classList.remove('fade-out');
-        renderDashboards();
+        renderDashboards(); // Show login screen
     }, { once: true });
 }
 

@@ -24,71 +24,25 @@ const dropArea = document.getElementById('dropArea');
 const fileInput = document.getElementById('notificationImage');
 const imagePreview = document.getElementById('imagePreview');
 
+// --- FINAL DEPLOYMENT URL ---
+const API_BASE_URL = 'https://college-connect-pluo.onrender.com/api'; // Your Render.com Backend URL
 
-const API_BASE_URL = 'https://college-connect-pluo.onrender.com/api';
-
-// Predefined users for demonstration
-/*const initialUsers = {
-    'student@college.edu': { password: 'password', role: 'student', branch: 'CSE', year: '3' },
-    'admin@college.edu': { password: 'password', role: 'admin' }
-};*/
-
-// Load data from localStorage or use initial data
-//let users = JSON.parse(localStorage.getItem('users')) || initialUsers;
-//let allNotifications = JSON.parse(localStorage.getItem('notifications')) || [];
-
-// Save initial data to localStorage if it doesn't exist
-/*
-if (!localStorage.getItem('users')) {
-    localStorage.setItem('users', JSON.stringify(initialUsers));
+// Helper function to format ISO date string into a readable format
+function formatNotificationDate(isoDateString) {
+    if (!isoDateString) return 'N/A';
+    
+    // Create a Date object from the ISO string
+    const date = new Date(isoDateString);
+    
+    // Format it into a readable, localized string (e.g., Oct 23, 2025, 4:36 PM)
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
 }
-
-// Add some sample data
-if (!localStorage.getItem('notifications')) {
-    allNotifications = [
-        {
-            id: 1,
-            title: 'Welcome to College Connect',
-            content: 'This is the college notification system. Stay updated with all events and announcements.',
-            type: 'general',
-            audience: 'college',
-            date: new Date().toLocaleDateString('en-US'),
-            image: 'https://placehold.co/600x300/cccccc/white',
-            imageAlt: 'Illustration of connected college students collaborating on a project with digital screens'
-        },
-        {
-            id: 2,
-            title: 'Technical Fest 2024',
-            content: 'Annual technical fest will be held on December 15-17. Register now!',
-            type: 'event',
-            audience: 'college',
-            date: new Date(Date.now() + 86400000 * 5).toLocaleDateString('en-US'),
-            image: 'https://placehold.co/600x300/5c8fff/white',
-            imageAlt: 'Vibrant poster for technical festival with abstract circuit board and technology icons'
-        },
-        {
-            id: 3,
-            title: 'End Semester Exams',
-            content: 'Semester exams schedule has been announced. Check your department notice board.',
-            type: 'exam',
-            audience: 'college',
-            date: new Date(Date.now() + 86400000 * 10).toLocaleDateString('en-US'),
-            image: 'https://placehold.co/600x300/ff6b6b/white',
-            imageAlt: 'Calendar view showing examination dates with book stacks and pencils in background'
-        },
-        {
-            id: 4,
-            title: 'CSE Workshop on AI',
-            content: 'Workshop on Artificial Intelligence for CSE students on November 30th.',
-            type: 'event',
-            audience: 'CSE',
-            date: new Date(Date.now() + 86400000 * 2).toLocaleDateString('en-US'),
-            image: 'https://placehold.co/600x300/4ecdc4/white',
-            imageAlt: 'Workshop scene with presentation screen showing AI code and attendees taking notes'
-        }
-    ];
-    localStorage.setItem('notifications', JSON.stringify(allNotifications));
-}*/
 
 document.addEventListener('DOMContentLoaded', () => {
     renderDashboards();
@@ -164,7 +118,7 @@ function closeModal() {
     overlay.style.display = 'none';
 }
 
-loginForm.addEventListener('submit', async (e) => { // ADD 'async' here
+loginForm.addEventListener('submit', async (e) => { 
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
@@ -191,18 +145,18 @@ loginForm.addEventListener('submit', async (e) => { // ADD 'async' here
             alert(data.msg || 'Invalid email or password.');
         }
     } catch (error) {
+        // This catches network errors (like the "Could not connect" error)
         alert('Could not connect to the server.');
     }
 });
 
-registerForm.addEventListener('submit', async (e) => { // ADD 'async' here
+registerForm.addEventListener('submit', async (e) => { 
     e.preventDefault();
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
     const branch = document.getElementById('registerBranch').value;
     const year = document.getElementById('registerYear').value;
-    // role is automatically 'student'
-
+    
     try {
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
@@ -229,15 +183,15 @@ forgotPasswordForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('resetEmail').value;
     
-    // Check if a backend URL is available
-    if (!BACKEND_URL) {
-        alert('This is a demo. Email functionality requires a server.');
+    // Check if API URL is available (it is now, as it's a constant)
+    if (!API_BASE_URL) {
+        alert('API URL is missing.');
         closeModal();
         return;
     }
 
     try {
-        const response = await fetch(`${BACKEND_URL}/api/forgot-password`, {
+        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -248,7 +202,7 @@ forgotPasswordForm.addEventListener('submit', async (e) => {
         const result = await response.json();
 
         if (response.ok) {
-            alert(result.message); // e.g., "If an account with this email exists, a reset link has been sent."
+            alert(result.msg); // Updated to result.msg to match backend response
         } else {
             alert(result.error || 'An error occurred. Please try again.');
         }
@@ -300,12 +254,21 @@ fileInput.addEventListener('change', (e) => {
 
 function handleFile(file) {
     if (file.type.startsWith('image/')) {
+        const publishButton = document.querySelector('#notificationForm .btn-primary');
+        
+        // Disable button while loading
+        publishButton.disabled = true; 
+        publishButton.textContent = 'Loading Image...';
+
         const reader = new FileReader();
         reader.onload = (event) => {
             imagePreview.src = event.target.result;
             imagePreview.style.display = 'block';
-            // Store the Base64 string in a temporary variable before form submission
             notificationForm.dataset.image = event.target.result;
+            
+            // Re-enable button
+            publishButton.disabled = false;
+            publishButton.textContent = 'Publish Notification'; 
         };
         reader.readAsDataURL(file);
     } else {
@@ -316,13 +279,13 @@ function handleFile(file) {
     }
 }
 
-notificationForm.addEventListener('submit', async (e) => { // ADD 'async' here
+notificationForm.addEventListener('submit', async (e) => { 
     e.preventDefault();
     const title = document.getElementById('notificationTitle').value;
     const content = document.getElementById('notificationContent').value;
     const type = document.getElementById('notificationType').value;
     const audience = document.getElementById('notificationAudience').value;
-    const image = notificationForm.dataset.image || null; // Base64 string
+    const image = notificationForm.dataset.image || null; 
 
     const token = localStorage.getItem('token');
     if (!token) return logout();
@@ -342,9 +305,9 @@ notificationForm.addEventListener('submit', async (e) => { // ADD 'async' here
             notificationForm.reset();
             imagePreview.style.display = 'none';
             notificationForm.dataset.image = '';
-            // Optional: Reload the management section if admin is on that view
+            
             if (document.getElementById('manageSection').classList.contains('hidden')) {
-                 renderAdminNotifications(); // Fetches and updates the list
+                 renderAdminNotifications(); 
             }
         } else {
             const error = await response.json();
@@ -374,10 +337,8 @@ async function fetchNotifications(type, audience = null) {
         if (response.ok) {
             let notifications = await response.json();
             
-            // Apply client-side sorting (optional, can be done on server too)
             notifications = sortNotifications(notifications, sortSelect.value);
             
-            // Only store the fetched data in this scope, no global 'allNotifications' needed.
             return notifications;
         } else {
             alert('Failed to load notifications. Session expired. Please log in.');
@@ -411,7 +372,7 @@ function renderNotifications(notifications) {
             ${imageHtml}
             <div class="notification-header">
                 <span class="notification-title">${note.title}</span>
-                <span class="notification-meta">${note.date}</span>
+                <span class="notification-meta">${formatNotificationDate(note.date)}</span>
             </div>
             <p class="notification-content">${note.content}</p>
         `;
@@ -439,7 +400,7 @@ function renderEvents(events) {
             ${imageHtml}
             <div class="notification-header">
                 <span class="notification-title">${event.title}</span>
-                <span class="notification-meta">${event.date}</span>
+                <span class="notification-meta">${formatNotificationDate(event.date)}</span>
             </div>
             <p class="notification-content">${event.content}</p>
         `;
@@ -467,7 +428,7 @@ function renderExams(exams) {
             ${imageHtml}
             <div class="notification-header">
                 <span class="notification-title">${exam.title}</span>
-                <span class="notification-meta">${exam.date}</span>
+                <span class="notification-meta">${formatNotificationDate(exam.date)}</span>
             </div>
             <p class="notification-content">${exam.content}</p>
         `;
@@ -485,7 +446,7 @@ function openNotificationModal(note) {
         modalImage.style.display = 'none';
     }
     modalContent.textContent = note.content;
-    modalMeta.textContent = `Date: ${note.date} | Type: ${note.type}`;
+    modalMeta.textContent = `Date: ${formatNotificationDate(note.date)} | Type: ${note.type}`;
     notificationModal.style.display = 'block';
     overlay.style.display = 'block';
 }
@@ -495,7 +456,7 @@ function closeNotificationModal() {
     overlay.style.display = 'none';
 }
 
-async function filterNotifications(audience, button) { // ADD 'async' here
+async function filterNotifications(audience, button) { 
     const allBtns = document.querySelectorAll('.filter-btn');
     allBtns.forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
@@ -506,33 +467,18 @@ async function filterNotifications(audience, button) { // ADD 'async' here
     try {
         let url = `${API_BASE_URL}/notifications?type=general`;
         
-        // The API already handles filtering by branch and college-wide
-        if (audience !== 'all') {
-            // The logic here is complex in the client. The new API logic will handle this
-            // by simply fetching everything for the user's branch + college-wide, and the 
-            // filter buttons will just re-render/filter the results.
+        const response = await fetch(url, {
+            headers: { 'x-auth-token': token }
+        });
+
+        if (response.ok) {
+            let filtered = await response.json();
             
-            // To be purely API-driven for sorting, we'll refetch and sort on the client:
-            const response = await fetch(url, {
-                headers: { 'x-auth-token': token }
-            });
-
-            if (response.ok) {
-                let filtered = await response.json();
-                
-                // Client-side filtering to match the old logic:
-                if (audience !== 'all') {
-                    // Filter down to only college-wide or the specified branch for the button click
-                    filtered = filtered.filter(n => n.audience === 'college' || n.audience === audience);
-                }
-
-                filtered = sortNotifications(filtered, sortSelect.value);
-                renderNotifications(filtered);
+            if (audience !== 'all') {
+                filtered = filtered.filter(n => n.audience === 'college' || n.audience === audience);
             }
 
-        } else {
-             // For 'All', fetch the standard user view and filter/render it.
-            const filtered = await fetchNotifications('general');
+            filtered = sortNotifications(filtered, sortSelect.value);
             renderNotifications(filtered);
         }
 
@@ -555,7 +501,7 @@ function sortNotifications(notifications, sortBy) {
     });
 }
 
-async function renderAdminNotifications() { // ADD 'async' here
+async function renderAdminNotifications() { 
     adminNotificationList.innerHTML = '';
     const token = localStorage.getItem('token');
     if (!token) return logout();
@@ -578,10 +524,9 @@ async function renderAdminNotifications() { // ADD 'async' here
             li.onclick = () => openNotificationModal(note);
             let imageHtml = '';
             if (note.image) {
-                // The image source is the Base64 string from the server
                 imageHtml = `<img src="${note.image}" alt="${note.title || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
             }
-            // Note: The delete button MUST use event.stopPropagation() to prevent the modal from opening
+            
             li.innerHTML = `
                 ${imageHtml}
                 <div class="notification-header">
@@ -599,7 +544,7 @@ async function renderAdminNotifications() { // ADD 'async' here
     }
 }
 
-async function deleteNotification(id, event) { // ADD 'async' here
+async function deleteNotification(id, event) { 
     event.stopPropagation();
     const token = localStorage.getItem('token');
     if (!token) return logout();
@@ -624,7 +569,7 @@ async function deleteNotification(id, event) { // ADD 'async' here
     }
 }
 
-async function updateAnalytics() { // ADD 'async' here
+async function updateAnalytics() { 
     const token = localStorage.getItem('token');
     if (!token) return logout();
     
@@ -645,7 +590,7 @@ async function updateAnalytics() { // ADD 'async' here
     }
 }
 
-async function showSection(sectionId) { // ADD 'async' here
+async function showSection(sectionId) { 
     // Hide all sections first
     document.getElementById('notificationsSection').classList.add('hidden');
     document.getElementById('eventsSection').classList.add('hidden');
@@ -660,9 +605,9 @@ async function showSection(sectionId) { // ADD 'async' here
 
         // Determine which data to fetch based on sectionId
         if (sectionId === 'notifications') {
-            fetchedData = await fetchNotifications('general'); // Fetches general + circulars
+            fetchedData = await fetchNotifications('general'); 
             renderNotifications(fetchedData);
-            // Re-render based on filter if already active (e.g., sort change)
+            
             filterNotifications(document.querySelector('.filter-btn.active').dataset.audience, document.querySelector('.filter-btn.active'));
             
         } else if (sectionId === 'events') {
@@ -673,7 +618,6 @@ async function showSection(sectionId) { // ADD 'async' here
             renderExams(fetchedData);
         }
     }
-    // Note: filterNotifications and sortNotifications functions no longer need the global 'allNotifications' array.
 }
 
 function showAdminSection(sectionId) {

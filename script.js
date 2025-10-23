@@ -25,7 +25,7 @@ const fileInput = document.getElementById('notificationImage');
 const imagePreview = document.getElementById('imagePreview');
 
 
-const API_BASE_URL = 'https://college-connect-auvr.onrender.com';
+const API_BASE_URL = 'https://college-connectt.onrender.com';
 
 // Predefined users for demonstration
 /*const initialUsers = {

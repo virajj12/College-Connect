@@ -11,7 +11,7 @@ const app = express();
 // Middleware
 app.use(express.json({ limit: '50mb' })); // Allows parsing of large JSON payloads, important for Base64 images
 app.use(cors({
-    origin: 'http://127.0.0.1:5500' // IMPORTANT: Change this to your frontend URL if hosting.
+    origin: 'https://virajj12.github.io/College-Connect/' // IMPORTANT: Change this to your frontend URL if hosting.
 }));
 
 // Connect to MongoDB

@@ -11,7 +11,6 @@ Originally a static prototype, this project has evolved into a fully functional 
 ## 🚀 Live Demo
 
 * **Frontend (GitHub Pages):** [College Connect Live Site](https://virajj12.github.io/College-Connect/)
-* **Backend API (Render):** [https://college-connect-pluo.onrender.com](https://college-connect-pluo.onrender.com)
 
 ## ✨ Features
 

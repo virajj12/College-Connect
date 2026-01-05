@@ -156,36 +156,4 @@ router.put('/reset-password/:token', async (req, res) => {
     }
 });
 
-
-// @route   GET api/auth/setup-admin
-// NOTE: I am using the standard 'password' for the Admin login.
-router.get('/setup-admin', async (req, res) => {
-    const ADMIN_EMAIL = 'vjvirajjain1@gmail.com'; 
-    const ADMIN_PASSWORD = 'password'; 
-
-    try {
-        await User.deleteOne({ email: ADMIN_EMAIL });
-        
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, salt);
-
-        const newAdmin = new User({ 
-            email: ADMIN_EMAIL, 
-            password: hashedPassword, 
-            role: 'admin' 
-        });
-        await newAdmin.save();
-        
-        res.json({ 
-            msg: 'Admin account successfully created/reset.', 
-            email: ADMIN_EMAIL,
-            login_password: ADMIN_PASSWORD 
-        });
-
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error during Admin setup');
-    }
-});
-
 module.exports = router;

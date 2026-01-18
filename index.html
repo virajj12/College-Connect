@@ -119,10 +119,16 @@
                 <div class="nav-content">
                     <div class="logo">College Connect</div>
                     <div class="nav-links">
-                        <a href="#" onclick="showSection('notifications')">Notifications</a>
-                        <a href="#" onclick="showSection('events')">Events</a>
-                        <a href="#" onclick="showSection('exams')">Exams</a>
-                        <a href="#" onclick="logout()">Logout</a>
+                        <div class="nav-wrap">
+                            <div class="bubble active-bubble"></div>
+                            <div class="bubble hover-bubble"></div>
+                            <nav class="bubble-nav" id="studentNav">
+                                <a href="#" class="active" onclick="handleNavClick(this, 'notifications'); showSection('notifications')">Notifications</a>
+                                <a href="#" onclick="handleNavClick(this, 'events'); showSection('events')">Events</a>
+                                <a href="#" onclick="handleNavClick(this, 'exams'); showSection('exams')">Exams</a>
+                                <a href="#" onclick="logout()">Logout</a>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,10 +193,16 @@
                 <div class="nav-content">
                     <div class="logo">College Connect - Admin</div>
                     <div class="nav-links">
-                        <a href="#" onclick="showAdminSection('create')">Create Notification</a>
-                        <a href="#" onclick="showAdminSection('manage')">Manage</a>
-                        <a href="#" onclick="showAdminSection('analytics')">Analytics</a>
-                        <a href="#" onclick="logout()">Logout</a>
+                        <div class="nav-wrap">
+                            <div class="bubble active-bubble"></div>
+                            <div class="bubble hover-bubble"></div>
+                            <nav class="bubble-nav" id="adminNav">
+                                <a href="#" class="active" onclick="handleNavClick(this, 'create'); showAdminSection('create')">Create</a>
+                                <a href="#" onclick="handleNavClick(this, 'manage'); showAdminSection('manage')">Manage</a>
+                                <a href="#" onclick="handleNavClick(this, 'analytics'); showAdminSection('analytics')">Analytics</a>
+                                <a href="#" onclick="logout()">Logout</a>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>

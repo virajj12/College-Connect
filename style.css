@@ -250,12 +250,12 @@ body {
     color: rgba(48, 137, 255,1);
 }
 
-.nav-links {
+ .nav-links {
     display: flex;
     gap: 20px;
     align-items: center;
 }
-
+/*
 .nav-links a {
     color: var(--light);
     text-decoration: none;
@@ -266,6 +266,106 @@ body {
 
 .nav-links a:hover {
     background: #54aaff;
+} */
+
+/* --- BUBBLE NAVBAR STYLES --- */
+
+/* Wrapper for the pill shape */
+.nav-wrap {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: fit-content;
+    margin: 0 auto;
+    border-radius: 500px;
+    position: relative;
+    /* box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); */
+    background: rgba(0, 0, 0, 0.2); /*Semi-transparent black*/
+    backdrop-filter: blur(10px);
+    padding: 5px;
+}
+
+/* Background gradient border effect */
+.nav-wrap:after {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(180deg, rgba(0, 204, 255, 0.15), rgba(32, 192, 255, 0.1));
+    border-radius: 500px;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Navigation container */
+.bubble-nav {
+    width: fit-content;
+    display: flex;
+    gap: 5px;
+    position: relative;
+    /* CSS Anchor Name for the container */
+    anchor-name: --nav; 
+}
+
+/* Navigation Links */
+.bubble-nav a {
+    z-index: 10;
+    position: relative;
+    display: inline-block;
+    padding: 12px 24px; /* Adjusted padding for better fit */
+    color: var(--light);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-radius: 500px;
+}
+
+/* When a link is hovered, it defines the anchor for the hover bubble */
+.bubble-nav a:hover:before {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: 0;
+    anchor-name: --nav-hover; /* Unique name for hover target */
+}
+
+/* Active Link State */
+.bubble-nav a.active {
+    color: white;
+    anchor-name: --active-link; /* Unique name for active target */
+}
+
+/* The Moving Bubbles */
+.bubble {
+    position: absolute;
+    border-radius: 500px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none; /* Let clicks pass through */
+    transition: all 0.2s;
+}
+
+/* Active Bubble (The visible pill) */
+.bubble.active-bubble {
+    position-anchor: --active-link;
+    inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
+    z-index: 2;
+    /* Adapted to your Blue Theme */
+    background: linear-gradient(180deg, rgba(92, 143, 255, 0.7), rgba(30, 64, 175, 0.5)); 
+    box-shadow: 0 4px 12px rgba(92, 143, 255, 0.25);
+}
+
+/* Hover Bubble (The ghost pill) */
+.bubble.hover-bubble {
+    position-anchor: --nav-hover;
+    inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustment for smaller screens */
+@media (max-width: 768px) {
+    .bubble-nav a {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
 }
 
 .main-content {

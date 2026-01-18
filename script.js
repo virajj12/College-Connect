@@ -96,6 +96,19 @@ async function renderDashboards() {
     }
 }
 
+// Function to handle Navbar clicks and move the bubble
+function handleNavClick(element, section) {
+    // 1. Find the parent navigation container
+    const navContainer = element.closest('.bubble-nav');
+    
+    // 2. Remove 'active' class from all links in this specific container
+    const links = navContainer.querySelectorAll('a');
+    links.forEach(link => link.classList.remove('active'));
+    
+    // 3. Add 'active' class to the clicked link
+    element.classList.add('active');
+}
+
 function toggleAuthForm() {
     loginForm.classList.toggle('hidden');
     registerForm.classList.toggle('hidden');

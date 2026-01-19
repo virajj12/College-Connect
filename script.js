@@ -478,7 +478,7 @@ async function filterNotifications(audience, button) {
     if (!token) return logout();
 
     try {
-        let url = `${API_BASE_URL}/notifications?type=general`;
+        let url = `${API_BASE_URL}/notifications`;
         
         const response = await fetch(url, {
             headers: { 'x-auth-token': token }
@@ -488,7 +488,7 @@ async function filterNotifications(audience, button) {
             let filtered = await response.json();
             
             if (audience !== 'all') {
-                filtered = filtered.filter(n => n.audience === 'college' || n.audience === audience);
+                filtered = filtered.filter(n => n.audience === audience);
             }
 
             filtered = sortNotifications(filtered, sortSelect.value);

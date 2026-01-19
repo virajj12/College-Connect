@@ -436,7 +436,6 @@ body {
 }
 
 .notification-item .btn-danger {
-    float: right;
     margin-left: 10px;
     margin-top: 10px;
 }

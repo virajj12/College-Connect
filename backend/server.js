@@ -5,6 +5,10 @@ const cors = require('cors');
 const path = require('path'); // Core Node.js module for paths
 const crypto = require('crypto'); // For password reset logic
 
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/consistency', require('./routes/consistency'));
+
 dotenv.config();
 
 const app = express();

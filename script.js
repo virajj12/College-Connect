@@ -24,6 +24,10 @@ const dropArea = document.getElementById('dropArea');
 const fileInput = document.getElementById('notificationImage');
 const imagePreview = document.getElementById('imagePreview');
 
+const taskList = document.getElementById('taskList');
+const addTaskForm = document.getElementById('addTaskForm');
+const heatmapGrid = document.getElementById('heatmapGrid');
+
 // --- FINAL DEPLOYMENT URL ---
 const API_BASE_URL = 'https://college-connect-pluo.onrender.com/api'; // Your Render.com Backend URL
 
@@ -608,6 +612,7 @@ async function showSection(sectionId) {
     document.getElementById('notificationsSection').classList.add('hidden');
     document.getElementById('eventsSection').classList.add('hidden');
     document.getElementById('examsSection').classList.add('hidden');
+    document.getElementById('consistencySection').classList.add('hidden');
 
     // Show the selected section
     document.getElementById(sectionId + 'Section').classList.remove('hidden');
@@ -630,7 +635,166 @@ async function showSection(sectionId) {
             fetchedData = await fetchNotifications('exam');
             renderExams(fetchedData);
         }
+        else if (sectionId === 'consistency') {
+            await fetchAndRenderTasks();
+            await fetchAndRenderHeatmap();
+        }
     }
+}
+
+// --- CONSISTENCY FEATURE LOGIC ---
+
+// 1. Fetch and Render Tasks
+async function fetchAndRenderTasks() {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`${API_BASE_URL}/consistency/tasks`, {
+            headers: { 'x-auth-token': token }
+        });
+        const tasks = await response.json();
+        
+        taskList.innerHTML = '';
+        
+        if (tasks.length === 0) {
+            taskList.innerHTML = '<li class="empty-state">No daily habits yet. Create one!</li>';
+            return;
+        }
+
+        tasks.forEach(task => {
+            const li = document.createElement('li');
+            li.className = 'task-item';
+            
+            li.innerHTML = `
+                <div class="task-left">
+                    <input type="checkbox" class="task-checkbox" 
+                        ${task.isCompletedToday ? 'checked' : ''} 
+                        onchange="toggleTask('${task._id}')">
+                    <span class="task-title ${task.isCompletedToday ? 'completed' : ''}">${task.title}</span>
+                </div>
+                <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteTask('${task._id}')">Delete</button>
+            `;
+            taskList.appendChild(li);
+        });
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+    }
+}
+
+// 2. Add New Task
+addTaskForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('newTaskInput');
+    const title = input.value;
+    const token = localStorage.getItem('token');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/consistency/tasks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': token
+            },
+            body: JSON.stringify({ title })
+        });
+
+        if (response.ok) {
+            input.value = '';
+            fetchAndRenderTasks(); // Refresh list
+        }
+    } catch (error) {
+        alert('Error creating task');
+    }
+});
+
+// 3. Toggle Task Completion
+async function toggleTask(taskId) {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`${API_BASE_URL}/consistency/tasks/${taskId}/toggle`, {
+            method: 'PUT',
+            headers: { 'x-auth-token': token }
+        });
+
+        if (response.ok) {
+            // Re-fetch everything to ensure UI and Chart are in sync
+            fetchAndRenderTasks();
+            fetchAndRenderHeatmap();
+        }
+    } catch (error) {
+        alert('Network error');
+    }
+}
+
+// 4. Delete Task
+async function deleteTask(taskId) {
+    if(!confirm('Delete this habit?')) return;
+    
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`${API_BASE_URL}/consistency/tasks/${taskId}`, {
+            method: 'DELETE',
+            headers: { 'x-auth-token': token }
+        });
+
+        if (response.ok) {
+            fetchAndRenderTasks();
+            fetchAndRenderHeatmap(); // Deleting might remove historical data from chart
+        }
+    } catch (error) {
+        alert('Error deleting task');
+    }
+}
+
+// 5. Render Heatmap (Github Style)
+async function fetchAndRenderHeatmap() {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`${API_BASE_URL}/consistency/heatmap`, {
+            headers: { 'x-auth-token': token }
+        });
+        const data = await response.json(); // { "2024-02-01": 5, "2024-02-02": 1 }
+
+        generateHeatmapGrid(data);
+
+    } catch (error) {
+        console.error('Error fetching heatmap:', error);
+    }
+}
+
+function generateHeatmapGrid(data) {
+    heatmapGrid.innerHTML = '';
+    
+    // Calculate dates for the last 365 days
+    const today = new Date();
+    // Start from 52 weeks ago (approx 1 year) to align grid nicely
+    // Or specifically align to start on a Sunday/Monday
+    const daysToRender = 365;
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - daysToRender);
+
+    // Loop through every day from startDate to today
+    for (let i = 0; i <= daysToRender; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        
+        // Format to YYYY-MM-DD to match API keys
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const count = data[dateStr] || 0;
+
+        const box = document.createElement('div');
+        box.className = `heatmap-box level-${getLevel(count)}`;
+        box.title = `${count} tasks on ${dateStr}`; // Tooltip
+
+        heatmapGrid.appendChild(box);
+    }
+}
+
+function getLevel(count) {
+    if (count === 0) return 0;
+    if (count <= 2) return 1;
+    if (count <= 4) return 2;
+    if (count <= 6) return 3;
+    return 4;
 }
 
 function showAdminSection(sectionId) {

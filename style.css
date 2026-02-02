@@ -641,6 +641,106 @@ body {
     user-select: none;
 }
 
+/* --- CONSISTENCY & HEATMAP STYLES --- */
+
+/* Task List Styles */
+.add-task-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.task-list {
+    list-style: none;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
+}
+
+.task-item:hover {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.task-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Custom Checkbox */
+.task-checkbox {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: var(--success); 
+    transform: scale(1.2);
+}
+
+.task-title {
+    color: var(--light);
+    font-size: 1.1rem;
+}
+
+.task-title.completed {
+    text-decoration: line-through;
+    color: var(--gray);
+}
+
+/* Heatmap Styles */
+.heatmap-container {
+    padding: 10px;
+    overflow-x: auto; /* Allow scrolling on small screens */
+}
+
+.heatmap-grid {
+    display: grid;
+    /* 53 columns for weeks, auto rows */
+    grid-template-rows: repeat(7, 12px); 
+    grid-auto-flow: column; /* Fill columns first (Github style) */
+    gap: 3px;
+    margin-bottom: 10px;
+}
+
+.heatmap-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.1); /* Level 0 */
+}
+
+/* Contribution Levels (Colors) */
+.level-0 { background-color: rgba(255, 255, 255, 0.1); }
+.level-1 { background-color: #0e4429; } /* Dark Green */
+.level-2 { background-color: #006d32; }
+.level-3 { background-color: #26a641; }
+.level-4 { background-color: #39d353; } /* Bright Green */
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-top: 10px;
+}
+
+.legend-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+
 /* Forgot password link */
 .forgot-password {
     text-align: right;

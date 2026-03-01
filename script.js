@@ -1,3 +1,8 @@
+// ============================================
+// COLLEGE CONNECT — MAIN SCRIPT
+// ============================================
+
+// --- DOM Elements ---
 const authSection = document.getElementById('authSection');
 const studentDashboard = document.getElementById('studentDashboard');
 const adminDashboard = document.getElementById('adminDashboard');
@@ -28,17 +33,56 @@ const taskList = document.getElementById('taskList');
 const addTaskForm = document.getElementById('addTaskForm');
 const heatmapGrid = document.getElementById('heatmapGrid');
 
-// --- FINAL DEPLOYMENT URL ---
-const API_BASE_URL = 'https://college-connect-pluo.onrender.com/api'; // Your Render.com Backend URL
+// --- API Configuration ---
+const API_BASE_URL = 'https://college-connect-pluo.onrender.com/api';
 
-// Helper function to format ISO date string into a readable format
+// --- Store for search functionality ---
+let cachedNotifications = [];
+
+// ============================================
+// TOAST NOTIFICATION SYSTEM
+// ============================================
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span>${escapeHtml(message)}</span>
+        <div class="toast-progress"></div>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-remove after animation
+    setTimeout(() => {
+        toast.classList.add('toast-exit');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 3200);
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+// XSS Prevention — escape HTML in user-generated content
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Format ISO date into readable format
 function formatNotificationDate(isoDateString) {
     if (!isoDateString) return 'N/A';
-    
-    // Create a Date object from the ISO string
     const date = new Date(isoDateString);
-    
-    // Format it into a readable, localized string (e.g., Oct 23, 2025, 4:36 PM)
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -48,6 +92,78 @@ function formatNotificationDate(isoDateString) {
     });
 }
 
+// Button loading state helpers
+function setButtonLoading(btn, loading) {
+    if (loading) {
+        btn.classList.add('loading');
+        btn.disabled = true;
+    } else {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+    }
+}
+
+// Password visibility toggle
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+        btn.setAttribute('aria-label', 'Hide password');
+    } else {
+        input.type = 'password';
+        btn.textContent = '👁';
+        btn.setAttribute('aria-label', 'Show password');
+    }
+}
+
+// Animated counter for stat numbers
+function animateCounter(element, target) {
+    const duration = 800;
+    const startTime = performance.now();
+    const startVal = 0;
+
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(startVal + (target - startVal) * eased);
+        element.textContent = current;
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    requestAnimationFrame(update);
+}
+
+// ============================================
+// MOBILE MENU
+// ============================================
+function toggleMobileMenu(navId) {
+    const isStudent = navId === 'studentNav';
+    const navLinks = document.getElementById(isStudent ? 'studentNavLinks' : 'adminNavLinks');
+    const hamburger = document.getElementById(isStudent ? 'studentHamburger' : 'adminHamburger');
+
+    navLinks.classList.toggle('mobile-open');
+    hamburger.classList.toggle('active');
+
+    const isOpen = navLinks.classList.contains('mobile-open');
+    hamburger.setAttribute('aria-expanded', isOpen);
+}
+
+// Close mobile menu when a link is clicked
+function closeMobileMenu() {
+    document.querySelectorAll('.nav-links').forEach(nl => nl.classList.remove('mobile-open'));
+    document.querySelectorAll('.hamburger').forEach(h => {
+        h.classList.remove('active');
+        h.setAttribute('aria-expanded', 'false');
+    });
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
 document.addEventListener('DOMContentLoaded', () => {
     renderDashboards();
     sortSelect.addEventListener('change', () => {
@@ -55,25 +171,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// ============================================
+// AUTH & DASHBOARD RENDERING
+// ============================================
 async function renderDashboards() {
     const token = localStorage.getItem('token');
-    
+
     if (token) {
         try {
             const response = await fetch(`${API_BASE_URL}/auth/user`, {
-                headers: {
-                    'x-auth-token': token
-                }
+                headers: { 'x-auth-token': token }
             });
 
-            if (!response.ok) {
-                throw new Error('Token invalid or expired');
-            }
+            if (!response.ok) throw new Error('Token invalid or expired');
 
             const currentUser = await response.json();
-            
-            // Store user details (except token) for client-side use
-            localStorage.setItem('currentUserDetails', JSON.stringify(currentUser)); 
+            localStorage.setItem('currentUserDetails', JSON.stringify(currentUser));
 
             authSection.style.display = 'none';
             if (currentUser.role === 'student') {
@@ -87,7 +200,6 @@ async function renderDashboards() {
             }
         } catch (error) {
             console.error(error);
-            // If token is invalid, clear storage and show auth section
             localStorage.removeItem('token');
             localStorage.removeItem('currentUserDetails');
             authSection.style.display = 'flex';
@@ -100,17 +212,14 @@ async function renderDashboards() {
     }
 }
 
-// Function to handle Navbar clicks and move the bubble
+// ============================================
+// NAVIGATION
+// ============================================
 function handleNavClick(element, section) {
-    // 1. Find the parent navigation container
     const navContainer = element.closest('.bubble-nav');
-    
-    // 2. Remove 'active' class from all links in this specific container
-    const links = navContainer.querySelectorAll('a');
-    links.forEach(link => link.classList.remove('active'));
-    
-    // 3. Add 'active' class to the clicked link
+    navContainer.querySelectorAll('a').forEach(link => link.classList.remove('active'));
     element.classList.add('active');
+    closeMobileMenu();
 }
 
 function toggleAuthForm() {
@@ -128,6 +237,7 @@ function toggleAuthForm() {
 function showForgotPassword() {
     forgotPasswordModal.style.display = 'block';
     overlay.style.display = 'block';
+    document.getElementById('resetEmail').focus();
 }
 
 function closeModal() {
@@ -135,17 +245,21 @@ function closeModal() {
     overlay.style.display = 'none';
 }
 
-loginForm.addEventListener('submit', async (e) => { 
+// ============================================
+// LOGIN
+// ============================================
+loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+
+    setButtonLoading(btn, true);
 
     try {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
 
@@ -153,86 +267,100 @@ loginForm.addEventListener('submit', async (e) => {
 
         if (response.ok) {
             localStorage.setItem('token', data.token);
-            
+            showToast('Welcome back!', 'success');
             authSection.classList.add('fade-out');
             authSection.addEventListener('transitionend', () => {
                 renderDashboards();
             }, { once: true });
         } else {
-            alert(data.msg || 'Invalid email or password.');
+            showToast(data.msg || 'Invalid email or password.', 'error');
         }
     } catch (error) {
-        // This catches network errors (like the "Could not connect" error)
-        alert('Could not connect to the server.');
+        showToast('Could not connect to the server.', 'error');
+    } finally {
+        setButtonLoading(btn, false);
     }
 });
 
-registerForm.addEventListener('submit', async (e) => { 
+// ============================================
+// REGISTER
+// ============================================
+registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const name = document.getElementById('registerName').value;
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
     const branch = document.getElementById('registerBranch').value;
     const year = document.getElementById('registerYear').value;
-    
+    const btn = document.getElementById('registerBtn');
+
+    setButtonLoading(btn, true);
+
     try {
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password, branch, year })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, branch, year })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            alert('Account created successfully! Please sign in.');
+            showToast('Account created successfully! Please sign in.', 'success');
             toggleAuthForm();
         } else {
-            alert(data.msg || 'An error occurred during registration.');
+            showToast(data.msg || 'An error occurred during registration.', 'error');
         }
     } catch (error) {
-        alert('Could not connect to the server.');
+        showToast('Could not connect to the server.', 'error');
+    } finally {
+        setButtonLoading(btn, false);
     }
 });
 
+// ============================================
+// FORGOT PASSWORD
+// ============================================
 forgotPasswordForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('resetEmail').value;
-    
-    // Check if API URL is available (it is now, as it's a constant)
+    const btn = forgotPasswordForm.querySelector('.btn-primary');
+
     if (!API_BASE_URL) {
-        alert('API URL is missing.');
+        showToast('API URL is missing.', 'error');
         closeModal();
         return;
     }
 
+    setButtonLoading(btn, true);
+
     try {
         const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: email }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
         });
 
         const result = await response.json();
 
         if (response.ok) {
-            alert(result.msg); // Updated to result.msg to match backend response
+            showToast(result.msg, 'success');
         } else {
-            alert(result.error || 'An error occurred. Please try again.');
+            showToast(result.error || 'An error occurred. Please try again.', 'error');
         }
-
     } catch (error) {
         console.error('Error:', error);
-        alert('Could not connect to the server. Please try again later.');
+        showToast('Could not connect to the server.', 'error');
+    } finally {
+        setButtonLoading(btn, false);
     }
-    
+
     closeModal();
 });
 
-// Drag and drop event listeners
+// ============================================
+// IMAGE UPLOAD (Drag & Drop)
+// ============================================
 dropArea.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -249,7 +377,6 @@ dropArea.addEventListener('drop', (e) => {
     e.preventDefault();
     e.stopPropagation();
     dropArea.classList.remove('highlight');
-
     const files = e.dataTransfer.files;
     if (files.length > 0) {
         fileInput.files = files;
@@ -257,55 +384,58 @@ dropArea.addEventListener('drop', (e) => {
     }
 });
 
-// Click to upload
-dropArea.addEventListener('click', () => {
-    fileInput.click();
+dropArea.addEventListener('click', () => fileInput.click());
+
+// Also handle keyboard activation for accessibility
+dropArea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+    }
 });
 
 fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    if (file) {
-        handleFile(file);
-    }
+    if (file) handleFile(file);
 });
 
 function handleFile(file) {
     if (file.type.startsWith('image/')) {
-        const publishButton = document.querySelector('#notificationForm .btn-primary');
-        
-        // Disable button while loading
-        publishButton.disabled = true; 
-        publishButton.textContent = 'Loading Image...';
+        const publishButton = document.getElementById('publishBtn');
+        setButtonLoading(publishButton, true);
 
         const reader = new FileReader();
         reader.onload = (event) => {
             imagePreview.src = event.target.result;
             imagePreview.style.display = 'block';
             notificationForm.dataset.image = event.target.result;
-            
-            // Re-enable button
-            publishButton.disabled = false;
-            publishButton.textContent = 'Publish Notification'; 
+            setButtonLoading(publishButton, false);
         };
         reader.readAsDataURL(file);
     } else {
-        alert('Please upload a valid image file.');
+        showToast('Please upload a valid image file.', 'warning');
         fileInput.value = '';
         imagePreview.style.display = 'none';
         notificationForm.dataset.image = '';
     }
 }
 
-notificationForm.addEventListener('submit', async (e) => { 
+// ============================================
+// CREATE NOTIFICATION (Admin)
+// ============================================
+notificationForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = document.getElementById('notificationTitle').value;
     const content = document.getElementById('notificationContent').value;
     const type = document.getElementById('notificationType').value;
     const audience = document.getElementById('notificationAudience').value;
-    const image = notificationForm.dataset.image || null; 
+    const image = notificationForm.dataset.image || null;
+    const btn = document.getElementById('publishBtn');
 
     const token = localStorage.getItem('token');
     if (!token) return logout();
+
+    setButtonLoading(btn, true);
 
     try {
         const response = await fetch(`${API_BASE_URL}/notifications`, {
@@ -318,23 +448,27 @@ notificationForm.addEventListener('submit', async (e) => {
         });
 
         if (response.ok) {
-            alert('Notification Published Successfully!');
+            showToast('Notification Published Successfully!', 'success');
             notificationForm.reset();
             imagePreview.style.display = 'none';
             notificationForm.dataset.image = '';
-            
             if (document.getElementById('manageSection').classList.contains('hidden')) {
-                 renderAdminNotifications(); 
+                renderAdminNotifications();
             }
         } else {
             const error = await response.json();
-            alert(`Failed to publish: ${error.msg}`);
+            showToast(`Failed to publish: ${error.msg}`, 'error');
         }
     } catch (error) {
-        alert('Network error. Check backend server.');
+        showToast('Network error. Check backend server.', 'error');
+    } finally {
+        setButtonLoading(btn, false);
     }
 });
 
+// ============================================
+// FETCH & RENDER NOTIFICATIONS
+// ============================================
 async function fetchNotifications(type, audience = null) {
     const token = localStorage.getItem('token');
     if (!token) return logout();
@@ -346,34 +480,31 @@ async function fetchNotifications(type, audience = null) {
 
     try {
         const response = await fetch(url, {
-            headers: {
-                'x-auth-token': token
-            }
+            headers: { 'x-auth-token': token }
         });
 
         if (response.ok) {
             let notifications = await response.json();
-            
             notifications = sortNotifications(notifications, sortSelect.value);
-            
             return notifications;
         } else {
-            alert('Failed to load notifications. Session expired. Please log in.');
+            showToast('Session expired. Please log in again.', 'error');
             logout();
             return [];
         }
     } catch (error) {
         console.error('Fetch Error:', error);
-        alert('Network error. Check server connection.');
+        showToast('Network error. Check server connection.', 'error');
         return [];
     }
 }
 
 function renderNotifications(notifications) {
     notificationList.innerHTML = '';
+    cachedNotifications = notifications; // Cache for search
 
     if (notifications.length === 0) {
-        notificationList.innerHTML = '<li class="empty-state">No notifications found</li>';
+        notificationList.innerHTML = '<li class="empty-state"><span class="empty-state-icon">📭</span>No notifications found</li>';
         return;
     }
 
@@ -381,17 +512,21 @@ function renderNotifications(notifications) {
         const li = document.createElement('li');
         li.className = 'notification-item';
         li.onclick = () => openNotificationModal(note);
+        li.setAttribute('role', 'listitem');
+        li.setAttribute('tabindex', '0');
+        li.onkeydown = (e) => { if (e.key === 'Enter') openNotificationModal(note); };
+
         let imageHtml = '';
         if (note.image) {
-            imageHtml = `<img src="${note.image}" alt="${note.imageAlt || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            imageHtml = `<img src="${note.image}" alt="${escapeHtml(note.imageAlt || 'Notification image')}" style="width: 50px; height: 50px; border-radius: 8px; float: right; margin-left: 12px; object-fit: cover;" loading="lazy">`;
         }
         li.innerHTML = `
             ${imageHtml}
             <div class="notification-header">
-                <span class="notification-title">${note.title}</span>
+                <span class="notification-title">${escapeHtml(note.title)}</span>
                 <span class="notification-meta">${formatNotificationDate(note.date)}</span>
             </div>
-            <p class="notification-content">${note.content}</p>
+            <p class="notification-content">${escapeHtml(note.content)}</p>
         `;
         notificationList.appendChild(li);
     });
@@ -401,7 +536,7 @@ function renderEvents(events) {
     eventsList.innerHTML = '';
 
     if (events.length === 0) {
-        eventsList.innerHTML = '<li class="empty-state">No upcoming events</li>';
+        eventsList.innerHTML = '<li class="empty-state"><span class="empty-state-icon">🎉</span>No upcoming events</li>';
         return;
     }
 
@@ -409,17 +544,21 @@ function renderEvents(events) {
         const li = document.createElement('li');
         li.className = 'notification-item';
         li.onclick = () => openNotificationModal(event);
+        li.setAttribute('role', 'listitem');
+        li.setAttribute('tabindex', '0');
+        li.onkeydown = (e) => { if (e.key === 'Enter') openNotificationModal(event); };
+
         let imageHtml = '';
         if (event.image) {
-            imageHtml = `<img src="${event.image}" alt="${event.imageAlt || 'Event image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            imageHtml = `<img src="${event.image}" alt="${escapeHtml(event.imageAlt || 'Event image')}" style="width: 50px; height: 50px; border-radius: 8px; float: right; margin-left: 12px; object-fit: cover;" loading="lazy">`;
         }
         li.innerHTML = `
             ${imageHtml}
             <div class="notification-header">
-                <span class="notification-title">${event.title}</span>
+                <span class="notification-title">${escapeHtml(event.title)}</span>
                 <span class="notification-meta">${formatNotificationDate(event.date)}</span>
             </div>
-            <p class="notification-content">${event.content}</p>
+            <p class="notification-content">${escapeHtml(event.content)}</p>
         `;
         eventsList.appendChild(li);
     });
@@ -429,7 +568,7 @@ function renderExams(exams) {
     examsList.innerHTML = '';
 
     if (exams.length === 0) {
-        examsList.innerHTML = '<li class="empty-state">No exam schedule available</li>';
+        examsList.innerHTML = '<li class="empty-state"><span class="empty-state-icon">📝</span>No exam schedule available</li>';
         return;
     }
 
@@ -437,22 +576,29 @@ function renderExams(exams) {
         const li = document.createElement('li');
         li.className = 'notification-item';
         li.onclick = () => openNotificationModal(exam);
+        li.setAttribute('role', 'listitem');
+        li.setAttribute('tabindex', '0');
+        li.onkeydown = (e) => { if (e.key === 'Enter') openNotificationModal(exam); };
+
         let imageHtml = '';
         if (exam.image) {
-            imageHtml = `<img src="${exam.image}" alt="${exam.imageAlt || 'Exam image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+            imageHtml = `<img src="${exam.image}" alt="${escapeHtml(exam.imageAlt || 'Exam image')}" style="width: 50px; height: 50px; border-radius: 8px; float: right; margin-left: 12px; object-fit: cover;" loading="lazy">`;
         }
         li.innerHTML = `
             ${imageHtml}
             <div class="notification-header">
-                <span class="notification-title">${exam.title}</span>
+                <span class="notification-title">${escapeHtml(exam.title)}</span>
                 <span class="notification-meta">${formatNotificationDate(exam.date)}</span>
             </div>
-            <p class="notification-content">${exam.content}</p>
+            <p class="notification-content">${escapeHtml(exam.content)}</p>
         `;
         examsList.appendChild(li);
     });
 }
 
+// ============================================
+// NOTIFICATION MODAL
+// ============================================
 function openNotificationModal(note) {
     modalTitle.textContent = note.title;
     if (note.image) {
@@ -466,6 +612,9 @@ function openNotificationModal(note) {
     modalMeta.textContent = `Date: ${formatNotificationDate(note.date)} | Type: ${note.type}`;
     notificationModal.style.display = 'block';
     overlay.style.display = 'block';
+
+    // Focus trap to modal
+    notificationModal.focus();
 }
 
 function closeNotificationModal() {
@@ -473,7 +622,26 @@ function closeNotificationModal() {
     overlay.style.display = 'none';
 }
 
-async function filterNotifications(audience, button) { 
+// ============================================
+// SEARCH NOTIFICATIONS
+// ============================================
+function searchNotifications(query) {
+    if (!query.trim()) {
+        renderNotifications(cachedNotifications);
+        return;
+    }
+    const lower = query.toLowerCase();
+    const filtered = cachedNotifications.filter(n =>
+        n.title.toLowerCase().includes(lower) ||
+        n.content.toLowerCase().includes(lower)
+    );
+    renderNotifications(filtered);
+}
+
+// ============================================
+// FILTER & SORT
+// ============================================
+async function filterNotifications(audience, button) {
     const allBtns = document.querySelectorAll('.filter-btn');
     allBtns.forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
@@ -482,43 +650,41 @@ async function filterNotifications(audience, button) {
     if (!token) return logout();
 
     try {
-        let url = `${API_BASE_URL}/notifications`;
-        
-        const response = await fetch(url, {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
             headers: { 'x-auth-token': token }
         });
 
         if (response.ok) {
             let filtered = await response.json();
-            
             if (audience !== 'all') {
                 filtered = filtered.filter(n => n.audience === audience);
             }
-
             filtered = sortNotifications(filtered, sortSelect.value);
             renderNotifications(filtered);
-        }
 
+            // Clear search
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+        }
     } catch (error) {
         console.error('Filter Error:', error);
-        alert('Could not update filter.');
+        showToast('Could not update filter.', 'error');
     }
 }
 
 function sortNotifications(notifications, sortBy) {
     return notifications.slice().sort((a, b) => {
-        if (sortBy === 'date-desc') {
-            return new Date(b.date) - new Date(a.date);
-        } else if (sortBy === 'date-asc') {
-            return new Date(a.date) - new Date(b.date);
-        } else if (sortBy === 'title') {
-            return a.title.localeCompare(b.title);
-        }
+        if (sortBy === 'date-desc') return new Date(b.date) - new Date(a.date);
+        if (sortBy === 'date-asc') return new Date(a.date) - new Date(b.date);
+        if (sortBy === 'title') return a.title.localeCompare(b.title);
         return 0;
     });
 }
 
-async function renderAdminNotifications() { 
+// ============================================
+// ADMIN: MANAGE NOTIFICATIONS
+// ============================================
+async function renderAdminNotifications() {
     adminNotificationList.innerHTML = '';
     const token = localStorage.getItem('token');
     if (!token) return logout();
@@ -531,7 +697,7 @@ async function renderAdminNotifications() {
         const allNotifications = await response.json();
 
         if (allNotifications.length === 0) {
-            adminNotificationList.innerHTML = '<li class="empty-state">No notifications created yet</li>';
+            adminNotificationList.innerHTML = '<li class="empty-state"><span class="empty-state-icon">📋</span>No notifications created yet</li>';
             return;
         }
 
@@ -541,27 +707,26 @@ async function renderAdminNotifications() {
             li.onclick = () => openNotificationModal(note);
             let imageHtml = '';
             if (note.image) {
-                imageHtml = `<img src="${note.image}" alt="${note.title || 'Notification image'}" style="width: 50px; height: 50px; border-radius: 5px; float: right; margin-left: 10px; object-fit: cover;">`;
+                imageHtml = `<img src="${note.image}" alt="${escapeHtml(note.title || 'Notification image')}" style="width: 50px; height: 50px; border-radius: 8px; float: right; margin-left: 12px; object-fit: cover;" loading="lazy">`;
             }
-            
+
             li.innerHTML = `
                 ${imageHtml}
                 <div class="notification-header">
-                    <span class="notification-title">${note.title}</span>
-                    <span class="notification-meta">Audience: ${note.audience.toUpperCase()} | Type: ${note.type}</span>
+                    <span class="notification-title">${escapeHtml(note.title)}</span>
+                    <span class="notification-meta">Audience: ${escapeHtml(note.audience.toUpperCase())} | Type: ${escapeHtml(note.type)}</span>
                 </div>
-                <p class="notification-content">${note.content}</p>
-                <button class="btn btn-danger" onclick="deleteNotification('${note._id}', event)">Delete</button>
+                <p class="notification-content">${escapeHtml(note.content)}</p>
+                <button class="btn btn-danger" onclick="deleteNotification('${note._id}', event)" aria-label="Delete notification: ${escapeHtml(note.title)}">Delete</button>
             `;
             adminNotificationList.appendChild(li);
         });
-
     } catch (error) {
         adminNotificationList.innerHTML = '<li class="empty-state">Error fetching notifications.</li>';
     }
 }
 
-async function deleteNotification(id, event) { 
+async function deleteNotification(id, event) {
     event.stopPropagation();
     const token = localStorage.getItem('token');
     if (!token) return logout();
@@ -574,77 +739,98 @@ async function deleteNotification(id, event) {
             });
 
             if (response.ok) {
-                alert('Notification deleted.');
-                renderAdminNotifications(); // Reload list
-                updateAnalytics(); // Update counts
+                showToast('Notification deleted.', 'success');
+                renderAdminNotifications();
+                updateAnalytics();
             } else {
-                alert('Failed to delete notification.');
+                showToast('Failed to delete notification.', 'error');
             }
         } catch (error) {
-            alert('Network error during deletion.');
+            showToast('Network error during deletion.', 'error');
         }
     }
 }
 
-async function updateAnalytics() { 
+// ============================================
+// ADMIN: ANALYTICS
+// ============================================
+async function updateAnalytics() {
     const token = localStorage.getItem('token');
     if (!token) return logout();
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/notifications/analytics`, {
             headers: { 'x-auth-token': token }
         });
-        
+
         const data = await response.json();
-        
-        document.getElementById('totalNotifications').textContent = data.totalNotifications;
-        document.getElementById('totalEvents').textContent = data.totalEvents;
-        document.getElementById('totalExams').textContent = data.totalExams;
+
+        // Animate counters
+        animateCounter(document.getElementById('totalNotifications'), data.totalNotifications || 0);
+        animateCounter(document.getElementById('totalEvents'), data.totalEvents || 0);
+        animateCounter(document.getElementById('totalExams'), data.totalExams || 0);
     } catch (error) {
-         document.getElementById('totalNotifications').textContent = 'N/A';
-         document.getElementById('totalEvents').textContent = 'N/A';
-         document.getElementById('totalExams').textContent = 'N/A';
+        document.getElementById('totalNotifications').textContent = 'N/A';
+        document.getElementById('totalEvents').textContent = 'N/A';
+        document.getElementById('totalExams').textContent = 'N/A';
     }
 }
 
-async function showSection(sectionId) { 
-    // Hide all sections first
+// ============================================
+// SECTION NAVIGATION
+// ============================================
+async function showSection(sectionId) {
+    // Hide all sections
     document.getElementById('notificationsSection').classList.add('hidden');
     document.getElementById('eventsSection').classList.add('hidden');
     document.getElementById('examsSection').classList.add('hidden');
     document.getElementById('consistencySection').classList.add('hidden');
 
-    // Show the selected section
-    document.getElementById(sectionId + 'Section').classList.remove('hidden');
+    // Show selected section
+    const section = document.getElementById(sectionId + 'Section');
+    section.classList.remove('hidden');
 
     const userDetails = JSON.parse(localStorage.getItem('currentUserDetails'));
     if (userDetails && userDetails.role === 'student') {
-        let fetchedData = [];
-
-        // Determine which data to fetch based on sectionId
         if (sectionId === 'notifications') {
-            fetchedData = await fetchNotifications('general'); 
+            const fetchedData = await fetchNotifications('general');
             renderNotifications(fetchedData);
-            
-            filterNotifications(document.querySelector('.filter-btn.active').dataset.audience, document.querySelector('.filter-btn.active'));
-            
+            filterNotifications(
+                document.querySelector('.filter-btn.active').dataset.audience,
+                document.querySelector('.filter-btn.active')
+            );
         } else if (sectionId === 'events') {
-            fetchedData = await fetchNotifications('event');
+            const fetchedData = await fetchNotifications('event');
             renderEvents(fetchedData);
         } else if (sectionId === 'exams') {
-            fetchedData = await fetchNotifications('exam');
+            const fetchedData = await fetchNotifications('exam');
             renderExams(fetchedData);
-        }
-        else if (sectionId === 'consistency') {
+        } else if (sectionId === 'consistency') {
             await fetchAndRenderTasks();
             await fetchAndRenderHeatmap();
         }
     }
 }
 
-// --- CONSISTENCY FEATURE LOGIC ---
+function showAdminSection(sectionId) {
+    document.getElementById('createSection').classList.add('hidden');
+    document.getElementById('manageSection').classList.add('hidden');
+    document.getElementById('analyticsSection').classList.add('hidden');
 
-// 1. Fetch and Render Tasks
+    document.getElementById(sectionId + 'Section').classList.remove('hidden');
+
+    if (sectionId === 'manage') {
+        renderAdminNotifications();
+    } else if (sectionId === 'analytics') {
+        updateAnalytics();
+    }
+}
+
+// ============================================
+// CONSISTENCY FEATURE
+// ============================================
+
+// Fetch and Render Tasks
 async function fetchAndRenderTasks() {
     const token = localStorage.getItem('token');
     try {
@@ -652,26 +838,26 @@ async function fetchAndRenderTasks() {
             headers: { 'x-auth-token': token }
         });
         const tasks = await response.json();
-        
+
         taskList.innerHTML = '';
-        
+
         if (tasks.length === 0) {
-            taskList.innerHTML = '<li class="empty-state">No daily habits yet. Create one!</li>';
+            taskList.innerHTML = '<li class="empty-state"><span class="empty-state-icon">✨</span>No daily habits yet. Create one!</li>';
             return;
         }
 
         tasks.forEach(task => {
             const li = document.createElement('li');
             li.className = 'task-item';
-            
             li.innerHTML = `
                 <div class="task-left">
-                    <input type="checkbox" class="task-checkbox" 
-                        ${task.isCompletedToday ? 'checked' : ''} 
-                        onchange="toggleTask('${task._id}')">
-                    <span class="task-title ${task.isCompletedToday ? 'completed' : ''}">${task.title}</span>
+                    <input type="checkbox" class="task-checkbox"
+                        ${task.isCompletedToday ? 'checked' : ''}
+                        onchange="toggleTask('${task._id}')"
+                        aria-label="Mark ${escapeHtml(task.title)} as complete">
+                    <span class="task-title ${task.isCompletedToday ? 'completed' : ''}">${escapeHtml(task.title)}</span>
                 </div>
-                <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteTask('${task._id}')">Delete</button>
+                <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;" onclick="deleteTask('${task._id}')" aria-label="Delete task: ${escapeHtml(task.title)}">Delete</button>
             `;
             taskList.appendChild(li);
         });
@@ -680,7 +866,7 @@ async function fetchAndRenderTasks() {
     }
 }
 
-// 2. Add New Task
+// Add New Task
 addTaskForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = document.getElementById('newTaskInput');
@@ -699,14 +885,15 @@ addTaskForm.addEventListener('submit', async (e) => {
 
         if (response.ok) {
             input.value = '';
-            fetchAndRenderTasks(); // Refresh list
+            showToast('Habit added!', 'success');
+            fetchAndRenderTasks();
         }
     } catch (error) {
-        alert('Error creating task');
+        showToast('Error creating task', 'error');
     }
 });
 
-// 3. Toggle Task Completion
+// Toggle Task Completion
 async function toggleTask(taskId) {
     const token = localStorage.getItem('token');
     try {
@@ -716,19 +903,18 @@ async function toggleTask(taskId) {
         });
 
         if (response.ok) {
-            // Re-fetch everything to ensure UI and Chart are in sync
             fetchAndRenderTasks();
             fetchAndRenderHeatmap();
         }
     } catch (error) {
-        alert('Network error');
+        showToast('Network error', 'error');
     }
 }
 
-// 4. Delete Task
+// Delete Task
 async function deleteTask(taskId) {
-    if(!confirm('Delete this habit?')) return;
-    
+    if (!confirm('Delete this habit?')) return;
+
     const token = localStorage.getItem('token');
     try {
         const response = await fetch(`${API_BASE_URL}/consistency/tasks/${taskId}`, {
@@ -737,25 +923,24 @@ async function deleteTask(taskId) {
         });
 
         if (response.ok) {
+            showToast('Habit removed.', 'success');
             fetchAndRenderTasks();
-            fetchAndRenderHeatmap(); // Deleting might remove historical data from chart
+            fetchAndRenderHeatmap();
         }
     } catch (error) {
-        alert('Error deleting task');
+        showToast('Error deleting task', 'error');
     }
 }
 
-// 5. Render Heatmap (Github Style)
+// Render Heatmap
 async function fetchAndRenderHeatmap() {
     const token = localStorage.getItem('token');
     try {
         const response = await fetch(`${API_BASE_URL}/consistency/heatmap`, {
             headers: { 'x-auth-token': token }
         });
-        const data = await response.json(); // { "2024-02-01": 5, "2024-02-02": 1 }
-
+        const data = await response.json();
         generateHeatmapGrid(data);
-
     } catch (error) {
         console.error('Error fetching heatmap:', error);
     }
@@ -763,28 +948,20 @@ async function fetchAndRenderHeatmap() {
 
 function generateHeatmapGrid(data) {
     heatmapGrid.innerHTML = '';
-    
-    // Calculate dates for the last 365 days
     const today = new Date();
-    // Start from 52 weeks ago (approx 1 year) to align grid nicely
-    // Or specifically align to start on a Sunday/Monday
     const daysToRender = 365;
     const startDate = new Date();
     startDate.setDate(today.getDate() - daysToRender);
 
-    // Loop through every day from startDate to today
     for (let i = 0; i <= daysToRender; i++) {
         const currentDate = new Date(startDate);
         currentDate.setDate(startDate.getDate() + i);
-        
-        // Format to YYYY-MM-DD to match API keys
         const dateStr = currentDate.toISOString().split('T')[0];
         const count = data[dateStr] || 0;
 
         const box = document.createElement('div');
         box.className = `heatmap-box level-${getLevel(count)}`;
-        box.title = `${count} tasks on ${dateStr}`; // Tooltip
-
+        box.title = `${count} tasks on ${dateStr}`;
         heatmapGrid.appendChild(box);
     }
 }
@@ -797,20 +974,9 @@ function getLevel(count) {
     return 4;
 }
 
-function showAdminSection(sectionId) {
-    document.getElementById('createSection').classList.add('hidden');
-    document.getElementById('manageSection').classList.add('hidden');
-    document.getElementById('analyticsSection').classList.add('hidden');
-
-    document.getElementById(sectionId + 'Section').classList.remove('hidden');
-
-    if (sectionId === 'manage') {
-        renderAdminNotifications();
-    } else if (sectionId === 'analytics') {
-        updateAnalytics();
-    }
-}
-
+// ============================================
+// LOGOUT
+// ============================================
 function logout() {
     const currentDashboard = studentDashboard.style.display === 'block' ? studentDashboard : adminDashboard;
 
@@ -818,15 +984,27 @@ function logout() {
     currentDashboard.classList.add('fade-out');
 
     currentDashboard.addEventListener('transitionend', () => {
-        // Clear all local user data
         localStorage.removeItem('token');
-        localStorage.removeItem('currentUserDetails'); 
-        
+        localStorage.removeItem('currentUserDetails');
         currentDashboard.style.display = 'none';
         currentDashboard.classList.remove('fade-out');
-        renderDashboards(); // Show login screen
+        showToast('Logged out successfully.', 'info');
+        renderDashboards();
     }, { once: true });
 }
+
+// ============================================
+// KEYBOARD SHORTCUTS & EVENTS
+// ============================================
+
+// Close modals on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeNotificationModal();
+        closeModal();
+        closeMobileMenu();
+    }
+});
 
 // Close modals on overlay click
 overlay.addEventListener('click', () => {

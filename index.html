@@ -1,65 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="favicon.png">
     <title>College Connect - Unified Notification System</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://college-connect-pluo.onrender.com">
+
     <link rel="stylesheet" href="style.css">
-    
-    <meta name="description" content="College Connect: A unified notification platform for Alva's Institute students to track exam schedules, branch-specific announcements, and campus events.">
-    <meta name="keywords" content="College Connect, Alva's Institute, Student Notification System, Exam Schedule, College Events, CSE, ECE, ME">
+
+    <!-- SEO Meta -->
+    <meta name="description"
+        content="College Connect: A unified notification platform for Alva's Institute students to track exam schedules, branch-specific announcements, and campus events.">
+    <meta name="keywords"
+        content="College Connect, Alva's Institute, Student Notification System, Exam Schedule, College Events, CSE, ECE, ME">
     <meta name="author" content="Viraj Jain">
     <link rel="canonical" href="https://virajj12.github.io/College-Connect/">
-    
+
+    <!-- Open Graph -->
     <meta property="og:title" content="College Connect" />
-    <meta property="og:description" content="The unified platform for college announcements, events, and exam schedules." />
+    <meta property="og:description"
+        content="The unified platform for college announcements, events, and exam schedules." />
     <meta property="og:image" content="https://virajj12.github.io/College-Connect/OG.png" />
     <meta property="og:url" content="https://virajj12.github.io/College-Connect/" />
     <meta property="og:type" content="website" />
-    
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="College Connect">
-    <meta name="twitter:description" content="The unified platform for college announcements, events, and exam schedules.">
+    <meta name="twitter:description"
+        content="The unified platform for college announcements, events, and exam schedules.">
     <meta name="twitter:image" content="https://virajj12.github.io/College-Connect/OG.png">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "College Connect",
+        "description": "Unified notification platform for Alva's Institute students",
+        "url": "https://virajj12.github.io/College-Connect/",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web"
+    }
+    </script>
 </head>
+
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="main-background"></div>
 
-    <div id="authSection" class="auth-container">
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
+
+    <!-- ============================================
+         AUTH SECTION
+         ============================================ -->
+    <div id="authSection" class="auth-container" role="region" aria-label="Authentication">
         <div class="auth-card">
             <div class="auth-header">
                 <h1>College Connect</h1>
                 <p>Unified Notification System</p>
             </div>
 
-            <form id="loginForm">
+            <!-- Login Form -->
+            <form id="loginForm" aria-label="Sign in form">
                 <div class="form-group">
                     <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required
+                        autocomplete="email">
                 </div>
                 <div class="form-group">
                     <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password"
+                            required autocomplete="current-password">
+                        <button type="button" class="password-toggle"
+                            onclick="togglePasswordVisibility('loginPassword', this)"
+                            aria-label="Show password">👁</button>
+                    </div>
                 </div>
                 <div class="forgot-password">
-                    <a id="forgotPasswordLink" onclick="showForgotPassword()">Forgot Password?</a>
+                    <a id="forgotPasswordLink" onclick="showForgotPassword()" role="button" tabindex="0">Forgot
+                        Password?</a>
                 </div>
-                <button type="submit" class="btn btn-primary">Sign In</button>
+                <button type="submit" class="btn btn-primary" id="loginBtn">
+                    <span class="spinner"></span>
+                    <span class="btn-text">Sign In</span>
+                </button>
             </form>
 
-            <form id="registerForm" class="hidden">
+            <!-- Register Form -->
+            <form id="registerForm" class="hidden" aria-label="Create account form">
                 <div class="form-group">
                     <label for="registerName">Full Name</label>
-                    <input type="text" id="registerName" class="form-control" placeholder="Enter your full name" required>
+                    <input type="text" id="registerName" class="form-control" placeholder="Enter your full name"
+                        required autocomplete="name">
                 </div>
                 <div class="form-group">
                     <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" class="form-control" placeholder="Enter your email" required>
+                    <input type="email" id="registerEmail" class="form-control" placeholder="Enter your email" required
+                        autocomplete="email">
                 </div>
                 <div class="form-group">
                     <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" class="form-control" placeholder="Create a password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="registerPassword" class="form-control"
+                            placeholder="Create a password" required autocomplete="new-password">
+                        <button type="button" class="password-toggle"
+                            onclick="togglePasswordVisibility('registerPassword', this)"
+                            aria-label="Show password">👁</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="registerBranch">Branch</label>
@@ -88,47 +146,69 @@
                         <option value="student">Student</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary">Create Account</button>
+                <button type="submit" class="btn btn-primary" id="registerBtn">
+                    <span class="spinner"></span>
+                    <span class="btn-text">Create Account</span>
+                </button>
             </form>
 
             <div class="switch-form">
                 <span id="switchText">Don't have an account? </span>
-                <a id="switchLink" onclick="toggleAuthForm()">Sign up</a>
+                <a id="switchLink" onclick="toggleAuthForm()" role="button" tabindex="0">Sign up</a>
             </div>
         </div>
     </div>
 
-    <div id="forgotPasswordModal">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h3>Reset Password</h3>
+    <!-- ============================================
+         FORGOT PASSWORD MODAL
+         ============================================ -->
+    <div id="forgotPasswordModal" role="dialog" aria-labelledby="forgotPasswordTitle" aria-modal="true">
+        <span class="close-btn" onclick="closeModal()" aria-label="Close">&times;</span>
+        <h3 id="forgotPasswordTitle">Reset Password</h3>
         <form id="forgotPasswordForm">
             <div class="form-group">
                 <label for="resetEmail">Enter your email</label>
                 <input type="email" id="resetEmail" class="form-control" placeholder="Your registered email" required>
             </div>
-            <button type="submit" class="btn btn-primary">Send Reset Link</button>
+            <button type="submit" class="btn btn-primary">
+                <span class="spinner"></span>
+                <span class="btn-text">Send Reset Link</span>
+            </button>
         </form>
     </div>
 
-    <div id="studentDashboard" class="dashboard">
-        <nav class="navbar">
+    <!-- ============================================
+         STUDENT DASHBOARD
+         ============================================ -->
+    <div id="studentDashboard" class="dashboard" role="main">
+        <nav class="navbar" aria-label="Student navigation">
             <div class="container">
                 <div class="nav-content">
-                    <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="nav-left">
                         <div class="logo-container">
-                            <img src="Alva's_Institution_Logo.png" alt="Alva's Institution Logo" />
+                            <img src="Alva's_Institution_Logo.png" alt="Alva's Institution Logo" loading="lazy" />
                         </div>
                         <div class="logo">College Connect</div>
                     </div>
-                    <div class="nav-links">
+
+                    <!-- Hamburger (mobile) -->
+                    <button class="hamburger" id="studentHamburger" onclick="toggleMobileMenu('studentNav')"
+                        aria-label="Toggle menu" aria-expanded="false">
+                        <span></span><span></span><span></span>
+                    </button>
+
+                    <div class="nav-links" id="studentNavLinks">
                         <div class="nav-wrap">
                             <div class="bubble active-bubble"></div>
                             <div class="bubble hover-bubble"></div>
                             <nav class="bubble-nav" id="studentNav">
-                                <a href="#notifications" class="active" onclick="handleNavClick(this, 'notifications'); showSection('notifications')">Notifications</a>
-                                <a href="#events" onclick="handleNavClick(this, 'events'); showSection('events')">Events</a>
+                                <a href="#notifications" class="active"
+                                    onclick="handleNavClick(this, 'notifications'); showSection('notifications')">Notifications</a>
+                                <a href="#events"
+                                    onclick="handleNavClick(this, 'events'); showSection('events')">Events</a>
                                 <a href="#exams" onclick="handleNavClick(this, 'exams'); showSection('exams')">Exams</a>
-                                <a href="#consistency" onclick="handleNavClick(this, 'consistency'); showSection('consistency')">Consistency</a>
+                                <a href="#consistency"
+                                    onclick="handleNavClick(this, 'consistency'); showSection('consistency')">Consistency</a>
                                 <a href="#" onclick="logout()">Logout</a>
                             </nav>
                         </div>
@@ -136,111 +216,141 @@
                 </div>
             </div>
         </nav>
-            <!-- <div class="dashboard-header">
-                <h1>Student Dashboard</h1>
-                <p>View notifications, events, exams, and consistency data</p>
-            </div> -->
-        <div class="container main-content">
-            <div id="notificationsSection">
+
+        <div class="container main-content" id="main-content">
+            <!-- Notifications Section -->
+            <div id="notificationsSection" class="section-transition">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Latest Notifications</h2>
                         <div class="sort-container">
-                            <label for="sortSelect">Sort by:</label>
-                            <select id="sortSelect" class="sort-select">
+                            <label for="sortSelect">Sort:</label>
+                            <select id="sortSelect" class="sort-select" aria-label="Sort notifications">
                                 <option value="date-desc">Latest First</option>
                                 <option value="date-asc">Oldest First</option>
                                 <option value="title">Title</option>
                             </select>
                         </div>
                     </div>
-                    <div class="filter-bar">
-                        <button class="filter-btn active" onclick="filterNotifications('all', this)" data-audience="all">All</button>
-                        <button class="filter-btn" onclick="filterNotifications('CSE', this)" data-audience="CSE">CSE</button>
-                        <button class="filter-btn" onclick="filterNotifications('ECE', this)" data-audience="ECE">ECE</button>
-                        <button class="filter-btn" onclick="filterNotifications('ME', this)" data-audience="ME">ME</button>
-                        <button class="filter-btn" onclick="filterNotifications('college', this)" data-audience="College-wide">College-wide</button>
+                    <div class="filter-bar" role="group" aria-label="Filter by branch">
+                        <button class="filter-btn active" onclick="filterNotifications('all', this)"
+                            data-audience="all">All</button>
+                        <button class="filter-btn" onclick="filterNotifications('CSE', this)"
+                            data-audience="CSE">CSE</button>
+                        <button class="filter-btn" onclick="filterNotifications('ECE', this)"
+                            data-audience="ECE">ECE</button>
+                        <button class="filter-btn" onclick="filterNotifications('ME', this)"
+                            data-audience="ME">ME</button>
+                        <button class="filter-btn" onclick="filterNotifications('college', this)"
+                            data-audience="College-wide">College-wide</button>
                     </div>
-                    <ul class="notification-list" id="notificationList">
+                    <!-- Search Bar -->
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search notifications..."
+                            oninput="searchNotifications(this.value)" aria-label="Search notifications">
+                    </div>
+                    <ul class="notification-list" id="notificationList" role="list">
                     </ul>
                 </div>
             </div>
 
-            <div id="eventsSection" class="hidden">
+            <!-- Events Section -->
+            <div id="eventsSection" class="hidden section-transition">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Upcoming Events</h2>
                     </div>
-                    <ul class="notification-list" id="eventsList">
+                    <ul class="notification-list" id="eventsList" role="list">
                     </ul>
                 </div>
             </div>
 
-            <div id="examsSection" class="hidden">
+            <!-- Exams Section -->
+            <div id="examsSection" class="hidden section-transition">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Exam Schedule</h2>
                     </div>
-                    <ul class="notification-list" id="examsList">
+                    <ul class="notification-list" id="examsList" role="list">
                     </ul>
                 </div>
             </div>
         </div>
-        
-        <div id="consistencySection" class="hidden">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Consistency Chart</h2>
-            </div>
-            <div class="heatmap-container">
-                <div class="heatmap-grid" id="heatmapGrid">
+
+        <!-- Consistency Section -->
+        <div id="consistencySection" class="hidden section-transition">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Consistency Chart</h2>
                     </div>
-                <div class="heatmap-legend">
-                    <span>Less</span>
-                    <div class="legend-box level-0"></div>
-                    <div class="legend-box level-1"></div>
-                    <div class="legend-box level-2"></div>
-                    <div class="legend-box level-3"></div>
-                    <div class="legend-box level-4"></div>
-                    <span>More</span>
+                    <div class="heatmap-container">
+                        <div class="heatmap-grid" id="heatmapGrid" role="img"
+                            aria-label="Activity heatmap for the past year">
+                        </div>
+                        <div class="heatmap-legend">
+                            <span>Less</span>
+                            <div class="legend-box level-0"></div>
+                            <div class="legend-box level-1"></div>
+                            <div class="legend-box level-2"></div>
+                            <div class="legend-box level-3"></div>
+                            <div class="legend-box level-4"></div>
+                            <span>More</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Daily Tasks</h2>
+                    </div>
+
+                    <form id="addTaskForm" class="add-task-form" aria-label="Add new task">
+                        <input type="text" id="newTaskInput" class="form-control"
+                            placeholder="Create a new daily habit..." required>
+                        <button type="submit" class="btn btn-primary"
+                            style="width: auto; padding: 13px 28px;">Add</button>
+                    </form>
+
+                    <ul class="task-list" id="taskList" role="list">
+                    </ul>
                 </div>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Daily Tasks</h2>
-            </div>
-            
-            <form id="addTaskForm" class="add-task-form">
-                <input type="text" id="newTaskInput" class="form-control" placeholder="Create a new daily habit..." required>
-                <button type="submit" class="btn btn-primary">Add</button>
-            </form>
-
-            <ul class="task-list" id="taskList">
-                </ul>
-        </div>
-    </div>
     </div>
 
-    <div id="adminDashboard" class="dashboard">
-        <nav class="navbar">
+    <!-- ============================================
+         ADMIN DASHBOARD
+         ============================================ -->
+    <div id="adminDashboard" class="dashboard" role="main">
+        <nav class="navbar" aria-label="Admin navigation">
             <div class="container">
                 <div class="nav-content">
-                    <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="nav-left">
                         <div class="logo-container">
-                            <img src="Alva's_Institution_Logo.png" alt="Alva's Institution Logo" />
+                            <img src="Alva's_Institution_Logo.png" alt="Alva's Institution Logo" loading="lazy" />
                         </div>
                         <div class="logo">College Connect</div>
                     </div>
-                    <div class="nav-links">
+
+                    <!-- Hamburger (mobile) -->
+                    <button class="hamburger" id="adminHamburger" onclick="toggleMobileMenu('adminNav')"
+                        aria-label="Toggle menu" aria-expanded="false">
+                        <span></span><span></span><span></span>
+                    </button>
+
+                    <div class="nav-links" id="adminNavLinks">
                         <div class="nav-wrap">
                             <div class="bubble active-bubble"></div>
                             <div class="bubble hover-bubble"></div>
                             <nav class="bubble-nav" id="adminNav">
-                                <a href="#" class="active" onclick="handleNavClick(this, 'create'); showAdminSection('create')">Create</a>
-                                <a href="#" onclick="handleNavClick(this, 'manage'); showAdminSection('manage')">Manage</a>
-                                <a href="#" onclick="handleNavClick(this, 'analytics'); showAdminSection('analytics')">Analytics</a>
+                                <a href="#" class="active"
+                                    onclick="handleNavClick(this, 'create'); showAdminSection('create')">Create</a>
+                                <a href="#"
+                                    onclick="handleNavClick(this, 'manage'); showAdminSection('manage')">Manage</a>
+                                <a href="#"
+                                    onclick="handleNavClick(this, 'analytics'); showAdminSection('analytics')">Analytics</a>
                                 <a href="#" onclick="logout()">Logout</a>
                             </nav>
                         </div>
@@ -255,27 +365,30 @@
                 <p>Manage college notifications and announcements</p>
             </div>
 
-            <div id="createSection">
+            <!-- Create Section -->
+            <div id="createSection" class="section-transition">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Create New Notification</h2>
                     </div>
-                    <form id="notificationForm">
+                    <form id="notificationForm" aria-label="Create notification form">
                         <div class="form-group">
                             <label for="notificationTitle">Title</label>
-                            <input type="text" id="notificationTitle" class="form-control" placeholder="Enter notification title" required>
+                            <input type="text" id="notificationTitle" class="form-control"
+                                placeholder="Enter notification title" required>
                         </div>
                         <div class="form-group">
                             <label for="notificationImage">Image Upload (Optional)</label>
-                            <div id="dropArea">
-                                <p>Drag & Drop an image here or click to select file</p>
+                            <div id="dropArea" role="button" tabindex="0" aria-label="Drop area for image upload">
+                                <p>📷 Drag & Drop an image here or click to select</p>
                             </div>
                             <input type="file" id="notificationImage" class="hidden" accept="image/*">
-                            <img id="imagePreview" src="#" alt="Image Preview" style="display: none;">
+                            <img id="imagePreview" src="#" alt="Image Preview" style="display: none;" loading="lazy">
                         </div>
                         <div class="form-group">
                             <label for="notificationContent">Content</label>
-                            <textarea id="notificationContent" class="form-control" rows="4" placeholder="Enter notification content" required></textarea>
+                            <textarea id="notificationContent" class="form-control" rows="4"
+                                placeholder="Enter notification content" required></textarea>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -299,40 +412,66 @@
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Publish Notification</button>
+                        <button type="submit" class="btn btn-primary" id="publishBtn">
+                            <span class="spinner"></span>
+                            <span class="btn-text">Publish Notification</span>
+                        </button>
                     </form>
                 </div>
             </div>
 
-            <div id="manageSection" class="hidden">
+            <!-- Manage Section -->
+            <div id="manageSection" class="hidden section-transition">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Manage Notifications</h2>
                     </div>
-                    <ul class="notification-list" id="adminNotificationList">
+                    <ul class="notification-list" id="adminNotificationList" role="list">
                     </ul>
                 </div>
             </div>
 
-            <div id="analyticsSection" class="hidden">
+            <!-- Analytics Section -->
+            <div id="analyticsSection" class="hidden section-transition">
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Analytics Dashboard</h2>
                     </div>
-                    <div id="analyticsContent" class="mb-20">
-                        <p>Total Notifications: <strong id="totalNotifications">0</strong></p>
-                        <p>Total Events: <strong id="totalEvents">0</strong></p>
-                        <p>Total Exams: <strong id="totalExams">0</strong></p>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-icon">📢</span>
+                            <div>
+                                <div class="stat-number" id="totalNotifications">0</div>
+                                <div class="stat-label">Notifications</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon">🎉</span>
+                            <div>
+                                <div class="stat-number" id="totalEvents">0</div>
+                                <div class="stat-label">Events</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon">📝</span>
+                            <div>
+                                <div class="stat-number" id="totalExams">0</div>
+                                <div class="stat-label">Exams</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="notificationModal">
-        <span class="close-btn" onclick="closeNotificationModal()">&times;</span>
+    <!-- ============================================
+         NOTIFICATION DETAIL MODAL
+         ============================================ -->
+    <div id="notificationModal" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
+        <span class="close-btn" onclick="closeNotificationModal()" aria-label="Close">&times;</span>
         <h2 id="modalTitle"></h2>
-        <img id="modalImage" style="display:none;" />
+        <img id="modalImage" style="display:none;" loading="lazy" />
         <p id="modalContent"></p>
         <small id="modalMeta"></small>
     </div>
@@ -341,6 +480,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
-
-

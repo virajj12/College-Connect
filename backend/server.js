@@ -56,8 +56,6 @@ connectDB();
 // Define Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/consistency', require('./routes/consistency'));
 
 

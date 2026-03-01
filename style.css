@@ -23,8 +23,8 @@
     --danger: hsl(0, 84%, 60%);
     --gray: hsl(215, 16%, 47%);
 
-    --surface: rgba(255, 255, 255, 0.06);
-    --surface-hover: rgba(255, 255, 255, 0.1);
+    --surface: rgba(255, 255, 255, 0.25);
+    --surface-hover: rgba(255, 255, 255, 0.75);
     --border: rgba(255, 255, 255, 0.12);
     --border-strong: rgba(255, 255, 255, 0.2);
 

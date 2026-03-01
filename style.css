@@ -406,7 +406,7 @@ body {
 .dashboard {
     min-height: 100vh;
     width: 100vw;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('banner.jpg');
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('login-background.jpg');
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;

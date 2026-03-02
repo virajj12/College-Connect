@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
-const auth = require('../middleware/auth'); 
+const auth = require('../middleware/auth');
 
 // Helper function to generate token
 const generateToken = (user) => {
@@ -12,7 +12,7 @@ const generateToken = (user) => {
         user: {
             id: user.id,
             role: user.role,
-            branch: user.branch 
+            branch: user.branch
         }
     };
     return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
@@ -21,7 +21,7 @@ const generateToken = (user) => {
 // Helper function to simulate sending an email 
 const sendPasswordResetEmail = (user, resetToken) => {
     // **IMPORTANT:** Update this URL with your actual hosted frontend domain
-    const resetURL = `https://virajj12.github.io/reset.html?token=${resetToken}`; 
+    const resetURL = `https://virajj12.github.io/College-Connect/reset.html?token=${resetToken}`;
 
     console.log(`\n\n======================================================`);
     console.log(`*** PASSWORD RESET TOKEN GENERATED FOR ${user.email} ***`);
@@ -101,14 +101,14 @@ router.post('/forgot-password', async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(200).json({ 
-                msg: 'If a user with that email is found, a password reset link has been sent.' 
+            return res.status(200).json({
+                msg: 'If a user with that email is found, a password reset link has been sent.'
             });
         }
-        
+
         const resetToken = user.getResetPasswordToken();
         await user.save();
-        
+
         sendPasswordResetEmail(user, resetToken);
 
         res.json({ msg: 'Password reset link sent to email (check server console).' });
@@ -133,7 +133,7 @@ router.put('/reset-password/:token', async (req, res) => {
     try {
         const user = await User.findOne({
             resetPasswordToken,
-            resetPasswordExpire: { $gt: Date.now() } 
+            resetPasswordExpire: { $gt: Date.now() }
         });
 
         if (!user) {
@@ -142,7 +142,7 @@ router.put('/reset-password/:token', async (req, res) => {
 
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(req.body.newPassword, salt);
-        
+
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
 

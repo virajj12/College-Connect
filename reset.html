@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <title>Reset Password — College Connect</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Reset page specific styles */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .reset-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        .reset-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            padding: 44px 40px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--border-strong);
+            animation: cardSlideUp 0.6s var(--transition-smooth) both;
+        }
+
+        .reset-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .reset-header h1 {
+            color: var(--primary);
+            text-shadow: 0 0 30px var(--primary-glow);
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .reset-header p {
+            color: rgba(240, 244, 248, 0.7);
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 24px;
+            color: rgba(240, 244, 248, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .back-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color var(--transition-fast);
+        }
+
+        .back-link a:hover {
+            color: hsl(var(--primary-h), 100%, 78%);
+            text-decoration: underline;
+        }
+
+        /* Status message */
+        .status-message {
+            text-align: center;
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeInUp 0.4s var(--transition-smooth) both;
+        }
+
+        .status-message.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: hsl(160, 84%, 60%);
+        }
+
+        .status-message.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: hsl(0, 84%, 70%);
+        }
+
+        .password-requirements {
+            color: rgba(240, 244, 248, 0.45);
+            font-size: 0.78rem;
+            margin-top: 6px;
+            padding-left: 2px;
+        }
+
+        /* Lock icon animation */
+        .lock-icon {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 12px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-background"></div>
+
+    <div class="reset-container">
+        <div class="reset-card">
+            <div class="reset-header">
+                <span class="lock-icon">🔐</span>
+                <h1>College Connect</h1>
+                <p>Set your new password</p>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
+
+            <form id="resetPasswordForm" aria-label="Reset password form">
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="newPassword" class="form-control" placeholder="Enter new password"
+                            required autocomplete="new-password" minlength="6">
+                        <button type="button" class="password-toggle"
+                            onclick="togglePasswordVisibility('newPassword', this)"
+                            aria-label="Show password">👁</button>
+                    </div>
+                    <div class="password-requirements">Minimum 6 characters</div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmPassword" class="form-control"
+                            placeholder="Confirm new password" required autocomplete="new-password" minlength="6">
+                        <button type="button" class="password-toggle"
+                            onclick="togglePasswordVisibility('confirmPassword', this)"
+                            aria-label="Show password">👁</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="resetBtn">
+                    <span class="spinner"></span>
+                    <span class="btn-text">Reset Password</span>
+                </button>
+            </form>
+
+            <div class="back-link">
+                <a href="index.html">← Back to Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- API Configuration ---
+        const API_BASE_URL = 'https://college-connect-pluo.onrender.com/api';
+
+        // --- Get token from URL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const resetToken = urlParams.get('token');
+
+        const form = document.getElementById('resetPasswordForm');
+        const statusMsg = document.getElementById('statusMessage');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // If no token, show error immediately
+        if (!resetToken) {
+            statusMsg.textContent = '❌ Invalid or missing reset token. Please request a new password reset link.';
+            statusMsg.className = 'status-message error';
+            form.style.display = 'none';
+        }
+
+        // --- Utility functions ---
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+                btn.setAttribute('aria-label', 'Hide password');
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁';
+                btn.setAttribute('aria-label', 'Show password');
+            }
+        }
+
+        function setButtonLoading(btn, loading) {
+            if (loading) {
+                btn.classList.add('loading');
+                btn.disabled = true;
+            } else {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        // --- Form submission ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                statusMsg.textContent = '⚠️ Passwords do not match.';
+                statusMsg.className = 'status-message error';
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                statusMsg.textContent = '⚠️ Password must be at least 6 characters.';
+                statusMsg.className = 'status-message error';
+                return;
+            }
+
+            setButtonLoading(resetBtn, true);
+            statusMsg.className = 'status-message'; // Hide while loading
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/reset-password/${resetToken}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusMsg.textContent = '✅ ' + (data.msg || 'Password successfully reset!');
+                    statusMsg.className = 'status-message success';
+                    form.style.display = 'none';
+
+                    // Redirect to login after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
+                } else {
+                    statusMsg.textContent = '❌ ' + (data.msg || 'Invalid or expired reset token.');
+                    statusMsg.className = 'status-message error';
+                }
+            } catch (error) {
+                statusMsg.textContent = '❌ Could not connect to the server. Please try again later.';
+                statusMsg.className = 'status-message error';
+            } finally {
+                setButtonLoading(resetBtn, false);
+            }
+        });
+    </script>
+</body>
+
+</html>

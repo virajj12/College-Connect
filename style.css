@@ -98,6 +98,38 @@ body {
     background-size: cover;
 }
 
+/* --- Animated Gradient for Auth Page --- */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.auth-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        -45deg,
+        hsl(220, 60%, 12%),
+        hsl(240, 50%, 18%),
+        hsl(200, 70%, 14%),
+        hsl(260, 55%, 16%)
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    z-index: -1;
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -165,7 +197,7 @@ body {
 }
 
 .auth-header p {
-    color: rgba(240, 244, 248, 0.7);
+    color: rgba(240, 244, 248, 0.8);
     font-size: 0.95rem;
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -179,7 +211,7 @@ body {
 .form-group label {
     display: block;
     margin-bottom: 6px;
-    color: rgba(240, 244, 248, 0.85);
+    color: rgba(240, 244, 248, 0.92);
     font-weight: 600;
     font-size: 0.85rem;
     letter-spacing: 0.3px;
@@ -627,6 +659,12 @@ body {
     margin-bottom: 24px;
     border: 1px solid var(--border);
     animation: fadeInUp 0.5s var(--transition-smooth) both;
+    transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.card:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow: var(--shadow-card), 0 0 20px rgba(92, 143, 255, 0.08);
 }
 
 @keyframes fadeInUp {
@@ -739,13 +777,13 @@ body {
 }
 
 .notification-meta {
-    color: rgba(240, 244, 248, 0.5);
+    color: rgba(240, 244, 248, 0.65);
     font-size: 0.82rem;
     white-space: nowrap;
 }
 
 .notification-content {
-    color: rgba(240, 244, 248, 0.7);
+    color: rgba(240, 244, 248, 0.78);
     line-height: 1.6;
     width: 75%;
     line-clamp: 2;
@@ -1520,6 +1558,37 @@ body {
 
     .heatmap-container {
         padding: 10px 0;
+    }
+
+    /* Larger touch targets for mobile */
+    .form-control {
+        padding: 15px 16px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+        min-height: 48px;
+    }
+
+    .password-wrapper .form-control {
+        padding-right: 48px;
+    }
+
+    .notification-item {
+        padding: 18px 16px;
+        min-height: 56px;
+    }
+
+    .filter-btn {
+        padding: 10px 16px;
+        min-height: 44px;
+    }
+
+    .btn {
+        min-height: 48px;
+        padding: 14px 24px;
+    }
+
+    .task-checkbox {
+        width: 24px;
+        height: 24px;
     }
 }
 

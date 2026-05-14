@@ -3,8 +3,26 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+
+// Rate limiters for brute-force protection
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    message: { msg: 'Too many login attempts. Please try again after 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+const registerLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5,
+    message: { msg: 'Too many registration attempts. Please try again after 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
 
 // Helper function to generate token
 const generateToken = (user) => {
@@ -31,8 +49,8 @@ const sendPasswordResetEmail = (user, resetToken) => {
 
 // @route   POST api/auth/register
 // @desc    Register a new student user
-router.post('/register', async (req, res) => {
-    const { email, password, branch, year } = req.body;
+router.post('/register', registerLimiter, async (req, res) => {
+    const { name, email, password, branch, year } = req.body;
 
     try {
         let user = await User.findOne({ email });
@@ -40,7 +58,7 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ msg: 'User already exists' });
         }
 
-        user = new User({ email, password, branch, year, role: 'student' });
+        user = new User({ name, email, password, branch, year, role: 'student' });
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
@@ -58,7 +76,7 @@ router.post('/register', async (req, res) => {
 
 // @route   POST api/auth/login
 // @desc    Authenticate user & get token
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
     const { email, password } = req.body;
 
     try {

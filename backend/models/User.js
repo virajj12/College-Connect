@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const crypto = require('crypto'); // Core Node.js module
 
 const UserSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
     email: {
         type: String,
         required: true,

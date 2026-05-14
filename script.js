@@ -162,6 +162,51 @@ function closeMobileMenu() {
 }
 
 // ============================================
+// FOCUS TRAPPING (Accessibility)
+// ============================================
+let previouslyFocusedElement = null;
+
+function trapFocus(modal) {
+    previouslyFocusedElement = document.activeElement;
+    const focusableSelectors = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const focusableElements = modal.querySelectorAll(focusableSelectors);
+    if (focusableElements.length === 0) return;
+
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    // Store handler so we can remove it later
+    modal._focusTrapHandler = (e) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey) {
+            if (document.activeElement === firstFocusable) {
+                e.preventDefault();
+                lastFocusable.focus();
+            }
+        } else {
+            if (document.activeElement === lastFocusable) {
+                e.preventDefault();
+                firstFocusable.focus();
+            }
+        }
+    };
+
+    modal.addEventListener('keydown', modal._focusTrapHandler);
+    firstFocusable.focus();
+}
+
+function releaseFocus(modal) {
+    if (modal._focusTrapHandler) {
+        modal.removeEventListener('keydown', modal._focusTrapHandler);
+        delete modal._focusTrapHandler;
+    }
+    if (previouslyFocusedElement) {
+        previouslyFocusedElement.focus();
+        previouslyFocusedElement = null;
+    }
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -237,12 +282,13 @@ function toggleAuthForm() {
 function showForgotPassword() {
     forgotPasswordModal.style.display = 'block';
     overlay.style.display = 'block';
-    document.getElementById('resetEmail').focus();
+    trapFocus(forgotPasswordModal);
 }
 
 function closeModal() {
     forgotPasswordModal.style.display = 'none';
     overlay.style.display = 'none';
+    releaseFocus(forgotPasswordModal);
 }
 
 // ============================================
@@ -614,12 +660,13 @@ function openNotificationModal(note) {
     overlay.style.display = 'block';
 
     // Focus trap to modal
-    notificationModal.focus();
+    trapFocus(notificationModal);
 }
 
 function closeNotificationModal() {
     notificationModal.style.display = 'none';
     overlay.style.display = 'none';
+    releaseFocus(notificationModal);
 }
 
 // ============================================

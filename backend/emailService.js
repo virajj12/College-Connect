@@ -3,6 +3,10 @@
 // ============================================
 
 const nodemailer = require('nodemailer');
+const dns = require('dns');
+
+// Force Node.js to use IPv4 to prevent ENETUNREACH IPv6 errors
+dns.setDefaultResultOrder('ipv4first');
 
 // --- Transporter Configuration ---
 // Uses Gmail SMTP with an App Password.

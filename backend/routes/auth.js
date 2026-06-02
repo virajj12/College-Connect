@@ -114,7 +114,7 @@ router.get('/user', auth, async (req, res) => {
 // @route   POST api/auth/forgot-password (Token Generation)
 router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
-
+    let user;
     try {
         const user = await User.findOne({ email });
 

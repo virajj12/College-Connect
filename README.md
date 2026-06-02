@@ -1,6 +1,6 @@
 # College Connect: Unified Notification System
 
-![College Connect OG](OG.png)
+![College Connect OG](OG.jpg)
 
 ## 🌟 Overview
 

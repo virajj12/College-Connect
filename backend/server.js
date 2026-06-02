@@ -3,23 +3,30 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const path = require('path'); // Core Node.js module for paths
-const crypto = require('crypto'); // For password reset logic
 
 dotenv.config();
 
 const app = express();
 
+// Trust the first reverse proxy (Render's load balancer).
+// This is SAFE and REQUIRED for Render deployments:
+// - Ensures req.ip returns the real client IP (not the proxy's IP)
+// - Makes express-rate-limit work correctly per-user
+// - Sets req.secure correctly for HTTPS detection
+// Value of 1 = trust only the first hop (secure). Never use `true`.
+app.set('trust proxy', 1);
+
 // Middleware
 // Allows parsing of large JSON payloads (for Base64 images)
-app.use(express.json({ limit: '50mb' })); 
+app.use(express.json({ limit: '50mb' }));
 
 // --- NEW CORS CONFIGURATION ---
 const allowedOrigins = [
     // GitHub Pages (Hosted Frontend Root Domain)
-    'https://virajj12.github.io', 
+    'https://virajj12.github.io',
     // Local Development (e.g., VS Code Live Server)
-    'http://127.0.0.1:5500', 
-    'http://localhost:5500' 
+    'http://127.0.0.1:5500',
+    'http://localhost:5500'
 ];
 
 const corsOptions = {
@@ -33,8 +40,8 @@ const corsOptions = {
         }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, 
-    optionsSuccessStatus: 204 
+    credentials: true,
+    optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
@@ -63,7 +70,7 @@ app.use('/api/consistency', require('./routes/consistency'));
 // --- SERVING FRONTEND (Optional, but useful for hosting) ---
 // Serve static assets (HTML, CSS, JS, images) from the root directory
 // We join __dirname (backend) with '..' (parent directory)
-app.use(express.static(path.join(__dirname, '..'))); 
+app.use(express.static(path.join(__dirname, '..')));
 
 // Serve the index.html file on the root route
 app.get('/', (req, res) => {

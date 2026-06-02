@@ -832,6 +832,7 @@ async function showSection(sectionId) {
     document.getElementById('eventsSection').classList.add('hidden');
     document.getElementById('examsSection').classList.add('hidden');
     document.getElementById('consistencySection').classList.add('hidden');
+    document.getElementById('accountSection').classList.add('hidden');
 
     // Show selected section
     const section = document.getElementById(sectionId + 'Section');
@@ -855,6 +856,8 @@ async function showSection(sectionId) {
         } else if (sectionId === 'consistency') {
             await fetchAndRenderTasks();
             await fetchAndRenderHeatmap();
+        } else if (sectionId === 'account') {
+            populateAccountSection(userDetails);
         }
     }
 }
@@ -1058,3 +1061,162 @@ overlay.addEventListener('click', () => {
     closeNotificationModal();
     closeModal();
 });
+
+// ============================================
+// ACCOUNTS CENTER
+// ============================================
+
+// Branch code → full name mapping
+const BRANCH_NAMES = {
+    CSE: 'Computer Science',
+    ECE: 'Electronics & Communication',
+    ME: 'Mechanical Engineering',
+    CE: 'Civil Engineering',
+    EE: 'Electrical Engineering',
+    NA: 'Not Applicable'
+};
+
+// Year number → ordinal
+function getYearDisplay(year) {
+    const ordinals = { '1': '1st Year', '2': '2nd Year', '3': '3rd Year', '4': '4th Year' };
+    return ordinals[String(year)] || year || '—';
+}
+
+// Generate initials from name
+function getInitials(name) {
+    if (!name) return 'CC';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return parts[0].substring(0, 2).toUpperCase();
+}
+
+// Populate the account section with user details
+function populateAccountSection(user) {
+    // Profile header
+    document.getElementById('accountInitials').textContent = getInitials(user.name);
+    document.getElementById('accountName').textContent = user.name || '—';
+    document.getElementById('accountRoleBadge').textContent = (user.role || 'student').toUpperCase();
+
+    const branchFull = BRANCH_NAMES[user.branch] || user.branch || '—';
+    const yearFull = getYearDisplay(user.year);
+    document.getElementById('accountSubtitle').textContent = `${branchFull} · ${yearFull}`;
+
+    // Personal info grid
+    document.getElementById('accountInfoName').textContent = user.name || '—';
+    document.getElementById('accountInfoEmail').textContent = user.email || '—';
+    document.getElementById('accountInfoBranch').textContent = branchFull;
+    document.getElementById('accountInfoYear').textContent = yearFull;
+    document.getElementById('accountInfoRole').textContent = (user.role || 'student').charAt(0).toUpperCase() + (user.role || 'student').slice(1);
+
+    // Reset delete confirmation state
+    cancelDeleteConfirm();
+}
+
+// --- Change Password ---
+const changePasswordForm = document.getElementById('changePasswordForm');
+if (changePasswordForm) {
+    changePasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPasswordAccount').value;
+        const confirmPassword = document.getElementById('confirmPasswordAccount').value;
+        const btn = document.getElementById('changePasswordBtn');
+
+        // Validation
+        if (newPassword.length < 6) {
+            showToast('New password must be at least 6 characters.', 'warning');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showToast('New passwords do not match.', 'warning');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) return logout();
+
+        setButtonLoading(btn, true);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showToast(data.msg || 'Password changed successfully!', 'success');
+                changePasswordForm.reset();
+            } else {
+                showToast(data.msg || 'Failed to change password.', 'error');
+            }
+        } catch (error) {
+            showToast('Could not connect to the server.', 'error');
+        } finally {
+            setButtonLoading(btn, false);
+        }
+    });
+}
+
+// --- Delete Account ---
+function showDeleteConfirm() {
+    document.getElementById('deleteAccountSection').classList.add('hidden');
+    document.getElementById('deleteConfirmSection').classList.remove('hidden');
+    document.getElementById('deleteConfirmInput').value = '';
+    document.getElementById('deleteConfirmInput').focus();
+}
+
+function cancelDeleteConfirm() {
+    const deleteSection = document.getElementById('deleteAccountSection');
+    const confirmSection = document.getElementById('deleteConfirmSection');
+    if (deleteSection) deleteSection.classList.remove('hidden');
+    if (confirmSection) confirmSection.classList.add('hidden');
+}
+
+async function deleteAccount() {
+    const input = document.getElementById('deleteConfirmInput');
+    if (input.value.trim() !== 'DELETE') {
+        showToast('Please type "DELETE" to confirm.', 'warning');
+        input.focus();
+        return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) return logout();
+
+    const btn = document.getElementById('confirmDeleteBtn');
+    setButtonLoading(btn, true);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/delete-account`, {
+            method: 'DELETE',
+            headers: { 'x-auth-token': token }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast('Account deleted. Goodbye!', 'info');
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUserDetails');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showToast(data.msg || 'Failed to delete account.', 'error');
+        }
+    } catch (error) {
+        showToast('Could not connect to the server.', 'error');
+    } finally {
+        setButtonLoading(btn, false);
+    }
+}

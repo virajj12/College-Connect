@@ -5,7 +5,9 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const User = require('../models/User');
+const Task = require('../models/Task');
 const auth = require('../middleware/auth');
+const { sendPasswordResetEmail } = require('../emailService');
 
 // Rate limiters for brute-force protection
 const loginLimiter = rateLimit({
@@ -36,16 +38,8 @@ const generateToken = (user) => {
     return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
 };
 
-// Helper function to simulate sending an email 
-const sendPasswordResetEmail = (user, resetToken) => {
-    // **IMPORTANT:** Update this URL with your actual hosted frontend domain
-    const resetURL = `https://virajj12.github.io/College-Connect/reset.html?token=${resetToken}`;
-
-    console.log(`\n\n======================================================`);
-    console.log(`*** PASSWORD RESET TOKEN GENERATED FOR ${user.email} ***`);
-    console.log(`*** DEVELOPMENT ONLY: Go to this URL to reset: ${resetURL}`);
-    console.log(`======================================================\n`);
-};
+// Email sending is now handled by ../emailService.js
+// Uses Nodemailer + Gmail SMTP in production, console.log in dev
 
 // @route   POST api/auth/register
 // @desc    Register a new student user
@@ -116,9 +110,10 @@ router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
     let user;
     try {
-        const user = await User.findOne({ email });
+        user = await User.findOne({ email });
 
         if (!user) {
+            // Always return 200 to prevent email enumeration
             return res.status(200).json({
                 msg: 'If a user with that email is found, a password reset link has been sent.'
             });
@@ -127,16 +122,18 @@ router.post('/forgot-password', async (req, res) => {
         const resetToken = user.getResetPasswordToken();
         await user.save();
 
-        sendPasswordResetEmail(user, resetToken);
+        await sendPasswordResetEmail(user, resetToken);
 
-        res.json({ msg: 'Password reset link sent to email (check server console).' });
+        res.json({ msg: 'Password reset link has been sent to your email.' });
 
     } catch (err) {
         console.error(err.message);
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
-        await user.save();
-        res.status(500).send('Server error');
+        if (user) {
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save();
+        }
+        res.status(500).json({ msg: 'Error sending reset email. Please try again.' });
     }
 });
 
@@ -171,6 +168,64 @@ router.put('/reset-password/:token', async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
+    }
+});
+
+// @route   PUT api/auth/change-password
+// @desc    Change password for authenticated user
+router.put('/change-password', auth, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ msg: 'Please provide current and new password.' });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({ msg: 'New password must be at least 6 characters.' });
+    }
+
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found.' });
+        }
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ msg: 'Current password is incorrect.' });
+        }
+
+        // Hash and save new password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.json({ msg: 'Password changed successfully.' });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ msg: 'Server error.' });
+    }
+});
+
+// @route   DELETE api/auth/delete-account
+// @desc    Delete the authenticated user's account and related data
+router.delete('/delete-account', auth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Delete user's tasks
+        await Task.deleteMany({ user: userId });
+
+        // Delete the user
+        await User.findByIdAndDelete(userId);
+
+        res.json({ msg: 'Account deleted successfully.' });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ msg: 'Server error.' });
     }
 });
 

@@ -467,9 +467,9 @@ body {
    NAVBAR
    ============================================ */
 .navbar {
-    background: rgba(10, 15, 30, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 15, 30, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
     padding: 12px 0;
@@ -657,8 +657,8 @@ body {
    ============================================ */
 .card {
     background: var(--surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
     border-radius: var(--radius-lg);
     padding: 28px;
     box-shadow: var(--shadow-card);
@@ -1654,6 +1654,262 @@ body {
 *:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+}
+
+/* ============================================
+   ACCOUNTS CENTER
+   ============================================ */
+
+/* --- Profile Header --- */
+.account-header-card {
+    background: linear-gradient(135deg, rgba(92, 143, 255, 0.08), rgba(30, 41, 59, 0.6));
+    border: 1px solid rgba(92, 143, 255, 0.15);
+}
+
+.account-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 10px;
+}
+
+.account-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), hsl(260, 70%, 55%));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 32px var(--primary-glow), 0 0 0 4px rgba(92, 143, 255, 0.15);
+    transition: all var(--transition-smooth);
+    position: relative;
+}
+
+.account-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid rgba(92, 143, 255, 0.12);
+    transition: all var(--transition-smooth);
+}
+
+.account-avatar:hover {
+    transform: scale(1.06);
+    box-shadow: 0 12px 40px var(--primary-glow), 0 0 0 4px rgba(92, 143, 255, 0.25);
+}
+
+.account-avatar:hover::after {
+    border-color: rgba(92, 143, 255, 0.3);
+    inset: -8px;
+}
+
+.account-avatar span {
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    user-select: none;
+}
+
+.account-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--light);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+}
+
+.account-badge {
+    display: inline-block;
+    padding: 4px 16px;
+    background: linear-gradient(135deg, hsla(var(--primary-h), 100%, 68%, 0.25), hsla(var(--primary-h), 70%, 42%, 0.2));
+    color: hsl(var(--primary-h), 100%, 78%);
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    border: 1px solid rgba(92, 143, 255, 0.2);
+    margin-bottom: 8px;
+}
+
+.account-subtitle {
+    color: rgba(240, 244, 248, 0.5);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* --- Personal Info Grid --- */
+.account-info-grid {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-info-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 12px;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.account-info-row:last-child {
+    border-bottom: none;
+}
+
+.account-info-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateX(4px);
+}
+
+.account-info-icon {
+    font-size: 1.3rem;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+}
+
+.account-info-row:hover .account-info-icon {
+    background: rgba(92, 143, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(92, 143, 255, 0.08);
+}
+
+.account-info-details {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.account-info-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(240, 244, 248, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.account-info-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--light);
+    word-break: break-word;
+}
+
+/* --- Danger Zone --- */
+.danger-zone {
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.04);
+}
+
+.danger-zone:hover {
+    border-color: rgba(239, 68, 68, 0.3);
+    box-shadow: var(--shadow-card), 0 0 20px rgba(239, 68, 68, 0.06);
+}
+
+.danger-zone-text {
+    color: rgba(240, 244, 248, 0.6);
+    font-size: 0.92rem;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.danger-zone-text strong {
+    color: var(--danger);
+}
+
+.delete-confirm-box {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-top: 16px;
+    animation: fadeInUp 0.3s var(--transition-smooth) both;
+}
+
+.delete-confirm-text {
+    color: rgba(240, 244, 248, 0.7);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.delete-confirm-text strong {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.delete-confirm-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.delete-confirm-actions .btn {
+    width: auto;
+    padding: 10px 22px;
+    font-size: 0.88rem;
+}
+
+/* --- Account Section Responsive --- */
+@media (max-width: 768px) {
+    .account-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .account-avatar span {
+        font-size: 1.6rem;
+    }
+
+    .account-name {
+        font-size: 1.35rem;
+    }
+
+    .account-info-row {
+        padding: 14px 8px;
+    }
+
+    .delete-confirm-actions {
+        flex-direction: column;
+    }
+
+    .delete-confirm-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .account-avatar {
+        width: 70px;
+        height: 70px;
+    }
+
+    .account-avatar span {
+        font-size: 1.4rem;
+    }
+
+    .account-name {
+        font-size: 1.2rem;
+    }
+
+    .account-info-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
 }
 
 /* Smooth scrollbar for dashboard */

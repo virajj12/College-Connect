@@ -996,25 +996,162 @@ async function fetchAndRenderHeatmap() {
     }
 }
 
-function generateHeatmapGrid(data) {
-    heatmapGrid.innerHTML = '';
-    const today = new Date();
-    const daysToRender = 365;
-    const startDate = new Date();
-    startDate.setDate(today.getDate() - daysToRender);
+//Update on heatmap
+const DAY_NAMES = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    for (let i = 0; i <= daysToRender; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(startDate.getDate() + i);
-        const dateStr = currentDate.toISOString().split('T')[0];
-        const count = data[dateStr] || 0;
-
-        const box = document.createElement('div');
-        box.className = `heatmap-box level-${getLevel(count)}`;
-        box.title = `${count} tasks on ${dateStr}`;
-        heatmapGrid.appendChild(box);
-    }
+function ymd(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
 }
+
+function positionTooltip(e, el) {
+    // 1. Get the exact position of the hovered box
+    const boxRect = e.target.getBoundingClientRect();
+    const tooltipRect = el.getBoundingClientRect();
+    
+    // 2. Calculate position to center it right ABOVE the box
+    let x = boxRect.left + (boxRect.width / 2) - (tooltipRect.width / 2);
+    let y = boxRect.top - tooltipRect.height - 8; // 8px gap above the box
+
+    // 3. Fallback checks: Don't let it bleed off the screen
+    if (x < 10) x = 10; // Keep it on the left edge
+    if (x + tooltipRect.width > window.innerWidth - 10) {
+        x = window.innerWidth - tooltipRect.width - 10; // Keep it on the right edge
+    }
+    if (y < 10) {
+        y = boxRect.bottom + 8; // If it goes off the top, flip it to BELOW the box
+    }
+
+    // 4. Apply the coordinates
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+}
+
+function generateHeatmapGrid(data) {
+    const heatmapWrapper = document.getElementById('heatmapWrapper');
+    const tooltip = document.getElementById('heatmapTooltip');
+    heatmapWrapper.innerHTML = ''; // Clear previous
+
+    // 1. Calculate Grid Dates (Aligning with Sunday & Saturday)
+    const weeksToRender = 52;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const endSat = new Date(today);
+    endSat.setDate(today.getDate() + (6 - today.getDay()));
+
+    const startSun = new Date(endSat);
+    startSun.setDate(endSat.getDate() - (weeksToRender * 7 - 1));
+
+    // 2. Set up HTML Structure
+    const monthRow = document.createElement('div');
+    monthRow.className = 'heatmap-month-labels';
+
+    const bodyRow = document.createElement('div');
+    bodyRow.className = 'heatmap-body';
+
+    const dayCol = document.createElement('div');
+    dayCol.className = 'heatmap-day-labels';
+    
+    // Inject Mon, Wed, Fri Labels
+    for (let d = 0; d < 7; d++) {
+        const lab = document.createElement('div');
+        lab.className = 'day-label' + (DAY_NAMES[d] ? '' : ' day-label--empty');
+        lab.textContent = DAY_NAMES[d] || '·';
+        dayCol.appendChild(lab);
+    }
+    bodyRow.appendChild(dayCol);
+
+    const grid = document.createElement('div');
+    grid.className = 'heatmap-grid';
+
+    // 3. Render Weeks & Cells
+    const CELL_WIDTH = 15; // 12px width + 3px gap
+    let lastMonth = -1;
+
+    for (let w = 0; w < weeksToRender; w++) {
+        const weekEl = document.createElement('div');
+        weekEl.className = 'heatmap-week';
+
+        // Check month for labels
+        const firstDayOfWeek = new Date(startSun);
+        firstDayOfWeek.setDate(startSun.getDate() + w * 7);
+        const month = firstDayOfWeek.getMonth();
+        
+        // Add month label if month changed
+        if (month !== lastMonth) {
+            const label = document.createElement('span');
+            label.className = 'month-label';
+            label.textContent = MONTH_NAMES[month];
+            label.style.left = `${w * CELL_WIDTH}px`;
+            monthRow.appendChild(label);
+            lastMonth = month;
+        }
+
+        for (let d = 0; d < 7; d++) {
+            const currentDay = new Date(startSun);
+            currentDay.setDate(startSun.getDate() + w * 7 + d);
+
+            const box = document.createElement('div');
+            box.className = 'heatmap-box';
+
+            if (currentDay > today) {
+                // Invisible boxes for future days in the final week
+                box.classList.add('empty'); 
+            } else {
+                const dateKey = ymd(currentDay);
+                const count = data[dateKey] || 0;
+                box.classList.add(`level-${getLevel(count)}`);
+
+                // Tooltip Interaction
+                box.addEventListener('mouseenter', (e) => {
+                    const formattedDate = currentDay.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+                    tooltip.innerHTML = `<div class="t-date">${formattedDate}</div><div>${count} task${count === 1 ? '' : 's'} completed</div>`;
+                    tooltip.hidden = false;
+                    positionTooltip(e, tooltip);
+                });
+                
+                box.addEventListener('mousemove', (e) => positionTooltip(e, tooltip));
+                box.addEventListener('mouseleave', () => { tooltip.hidden = true; });
+            }
+            weekEl.appendChild(box);
+        }
+        grid.appendChild(weekEl);
+    }
+
+    bodyRow.appendChild(grid);
+    heatmapWrapper.appendChild(monthRow);
+    heatmapWrapper.appendChild(bodyRow);
+    
+    // Auto-scroll to the right so the current date is visible
+    setTimeout(() => {
+        const container = document.querySelector('.heatmap-container');
+        if(container) container.scrollLeft = container.scrollWidth;
+    }, 50);
+}
+
+// function generateHeatmapGrid(data) {
+//     heatmapGrid.innerHTML = '';
+//     const today = new Date();
+//     const daysToRender = 365;
+//     const startDate = new Date();
+//     startDate.setDate(today.getDate() - daysToRender);
+
+//     for (let i = 0; i <= daysToRender; i++) {
+//         const currentDate = new Date(startDate);
+//         currentDate.setDate(startDate.getDate() + i);
+//         const dateStr = currentDate.toISOString().split('T')[0];
+//         const count = data[dateStr] || 0;
+
+//         const box = document.createElement('div');
+//         box.className = `heatmap-box level-${getLevel(count)}`;
+//         box.title = `${count} tasks on ${dateStr}`;
+//         heatmapGrid.appendChild(box);
+//     }
+// }
 
 function getLevel(count) {
     if (count === 0) return 0;

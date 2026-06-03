@@ -1,65 +1,22 @@
 // ============================================
-// EMAIL SERVICE — Nodemailer + Gmail SMTP
+// EMAIL SERVICE — Resend API
 // ============================================
+// Uses Resend (https://resend.com) instead of SMTP.
+// Works reliably on Render.com and other cloud platforms.
+// Requires RESEND_API_KEY in .env
+// Optionally set RESEND_FROM_EMAIL for a verified domain sender.
 
-const nodemailer = require('nodemailer');
-const dns = require('dns');
+const { Resend } = require('resend');
 
-// Force Node.js to use IPv4 to prevent ENETUNREACH IPv6 errors
-dns.setDefaultResultOrder('ipv4first');
+// --- Resend Client Configuration ---
+let resend = null;
 
-// --- Transporter Configuration ---
-// Uses Gmail SMTP with an App Password.
-// Requires EMAIL_USER and EMAIL_PASS in .env
-let transporter = null;
-
-if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    transporter = nodemailer.createTransport({
-        // Hardcoding Google's direct IPv4 address to bypass local network IPv6 routing errors (ENETUNREACH)
-        host: '74.125.136.108',
-        port: 587,
-        secure: false, // false tells Nodemailer to connect on 587 via STARTTLS (matching GMass "SSL: None")
-        tls: {
-            // Required when connecting via a direct IP address rather than 'smtp.gmail.com'
-            rejectUnauthorized: false
-        },
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
-    // transporter = nodemailer.createTransport({
-    //     host: 'smtp.gmail.com',
-    //     port: 587,
-    //     secure: false,
-    //     family: 4,
-    //     auth: {
-    //         user: process.env.EMAIL_USER,
-    //         pass: process.env.EMAIL_PASS
-    //     }
-    // });
-
-    // Verify connection on startup
-    transporter.verify(function (error, success) {
-        if (error) {
-            console.error('❌ Email service failed to connect:', error.message);
-            console.error('   Check EMAIL_USER and EMAIL_PASS in your .env file.');
-        } else {
-            console.log('✅ Email service ready (Gmail SMTP via IPv4)');
-        }
-    });
+if (process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+    console.log('✅ Email service ready (Resend API)');
 } else {
-    console.log('⚠️ EMAIL_USER or EMAIL_PASS not set in environment variables.');
+    console.log('⚠️ RESEND_API_KEY not set in environment variables.');
     console.log('   Fallback mode active: Password reset links will print directly to the terminal console.');
-    //     transporter.verify()
-    //         .then(() => console.log('✅ Email service ready (Gmail SMTP)'))
-    //         .catch((err) => {
-    //             console.error('❌ Email service failed to connect:', err.message);
-    //             console.error('   Check EMAIL_USER and EMAIL_PASS in your .env file.');
-    //             transporter = null; // Disable on failure
-    //         });
-    // } else {
-    //     console.warn('⚠️  EMAIL_USER / EMAIL_PASS not set — emails will be logged to console (dev mode).');
 }
 
 // --- HTML Email Template ---
@@ -159,18 +116,24 @@ async function sendPasswordResetEmail(user, resetToken) {
     // Build the reset URL
     const resetURL = `https://virajj12.github.io/College-Connect/reset.html?token=${resetToken}`;
 
-    if (transporter) {
-        // Production: send real email
-        const mailOptions = {
-            from: `"College Connect" <${process.env.EMAIL_USER}>`,
-            to: user.email,
-            subject: 'Password Reset — College Connect',
-            html: buildResetEmailHTML(user.name, resetURL)
-        };
+    if (resend) {
+        // Production: send real email via Resend API
+        const fromAddress = process.env.RESEND_FROM_EMAIL || 'College Connect <onboarding@resend.dev>';
 
         try {
-            await transporter.sendMail(mailOptions);
-            console.log(`📧 Password reset email sent to ${user.email}`);
+            const { data, error } = await resend.emails.send({
+                from: fromAddress,
+                to: [user.email],
+                subject: 'Password Reset — College Connect',
+                html: buildResetEmailHTML(user.name, resetURL)
+            });
+
+            if (error) {
+                console.error('❌ Resend API error:', error);
+                throw new Error('Failed to send password reset email');
+            }
+
+            console.log(`📧 Password reset email sent to ${user.email} (ID: ${data.id})`);
         } catch (err) {
             console.error('❌ Failed to send reset email:', err.message);
             throw new Error('Failed to send password reset email');

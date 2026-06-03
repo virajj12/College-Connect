@@ -1,23 +1,44 @@
 // ============================================
-// EMAIL SERVICE — Resend API
+// EMAIL SERVICE — Google Apps Script API
 // ============================================
-// Uses Resend (https://resend.com) instead of SMTP.
-// Works reliably on Render.com and other cloud platforms.
-// Requires RESEND_API_KEY in .env
-// Optionally set RESEND_FROM_EMAIL for a verified domain sender.
 
-const { Resend } = require('resend');
+// Pull the Webhook URL from the environment variables (no hardcoding)
+const EMAIL_API_URL = process.env.EMAIL_API_URL;
 
-// --- Resend Client Configuration ---
-let resend = null;
-
-if (process.env.RESEND_API_KEY) {
-    resend = new Resend(process.env.RESEND_API_KEY);
-    console.log('✅ Email service ready (Resend API)');
-} else {
-    console.log('⚠️ RESEND_API_KEY not set in environment variables.');
-    console.log('   Fallback mode active: Password reset links will print directly to the terminal console.');
+function buildResetEmailHTML(userName, resetURL) {
+    // ... keep your exact same HTML template code here ...
 }
+
+async function sendPasswordResetEmail(user, resetToken) {
+    const resetURL = `https://virajj12.github.io/College-Connect/reset.html?token=${resetToken}`;
+
+    if (!EMAIL_API_URL) {
+        console.warn('⚠️ EMAIL_API_URL is missing in .env! Printing reset link to console instead.');
+        console.log(`[DEV MODE] Reset Link: ${resetURL}`);
+        return;
+    }
+
+    try {
+        const response = await fetch(EMAIL_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                to: user.email,
+                subject: 'Password Reset — College Connect',
+                html: buildResetEmailHTML(user.name, resetURL)
+            }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        console.log(`📧 Password reset email requested for ${user.email}`);
+    } catch (err) {
+        console.error('❌ Failed to trigger email API:', err.message);
+        throw new Error('Failed to send password reset email');
+    }
+}
+
+module.exports = { sendPasswordResetEmail };
 
 // --- HTML Email Template ---
 function buildResetEmailHTML(userName, resetURL) {

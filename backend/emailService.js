@@ -15,15 +15,29 @@ let transporter = null;
 
 if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
+        // Hardcoding Google's direct IPv4 address to bypass local network IPv6 routing errors (ENETUNREACH)
+        host: '74.125.136.108',
         port: 587,
-        secure: false,
-        family: 4,
+        secure: false, // false tells Nodemailer to connect on 587 via STARTTLS (matching GMass "SSL: None")
+        tls: {
+            // Required when connecting via a direct IP address rather than 'smtp.gmail.com'
+            rejectUnauthorized: false
+        },
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
         }
     });
+    // transporter = nodemailer.createTransport({
+    //     host: 'smtp.gmail.com',
+    //     port: 587,
+    //     secure: false,
+    //     family: 4,
+    //     auth: {
+    //         user: process.env.EMAIL_USER,
+    //         pass: process.env.EMAIL_PASS
+    //     }
+    // });
 
     // Verify connection on startup
     transporter.verify(function (error, success) {

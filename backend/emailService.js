@@ -132,40 +132,4 @@ function buildResetEmailHTML(userName, resetURL) {
 </html>`;
 }
 
-// --- Send Password Reset Email ---
-async function sendPasswordResetEmail(user, resetToken) {
-    // Build the reset URL
-    const resetURL = `https://virajj12.github.io/College-Connect/reset.html?token=${resetToken}`;
-
-    if (resend) {
-        // Production: send real email via Resend API
-        const fromAddress = process.env.RESEND_FROM_EMAIL || 'College Connect <onboarding@resend.dev>';
-
-        try {
-            const { data, error } = await resend.emails.send({
-                from: fromAddress,
-                to: [user.email],
-                subject: 'Password Reset — College Connect',
-                html: buildResetEmailHTML(user.name, resetURL)
-            });
-
-            if (error) {
-                console.error('❌ Resend API error:', error);
-                throw new Error('Failed to send password reset email');
-            }
-
-            console.log(`📧 Password reset email sent to ${user.email} (ID: ${data.id})`);
-        } catch (err) {
-            console.error('❌ Failed to send reset email:', err.message);
-            throw new Error('Failed to send password reset email');
-        }
-    } else {
-        // Dev fallback: log to console
-        console.log(`\n======================================================`);
-        console.log(`*** PASSWORD RESET TOKEN GENERATED FOR ${user.email} ***`);
-        console.log(`*** DEVELOPMENT ONLY: Go to this URL to reset: ${resetURL}`);
-        console.log(`======================================================\n`);
-    }
-}
-
 module.exports = { sendPasswordResetEmail };

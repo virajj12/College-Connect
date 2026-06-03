@@ -39,7 +39,7 @@ const generateToken = (user) => {
 };
 
 // Email sending is now handled by ../emailService.js
-// Uses Resend API in production, console.log in dev
+// Uses Google Apps Script API in production, console.log in dev
 
 // @route   POST api/auth/register
 // @desc    Register a new student user

@@ -657,8 +657,8 @@ body {
    ============================================ */
 .card {
     background: var(--surface);
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-radius: var(--radius-lg);
     padding: 28px;
     box-shadow: var(--shadow-card);

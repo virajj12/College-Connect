@@ -26,15 +26,26 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     });
 
     // Verify connection on startup
-    transporter.verify()
-        .then(() => console.log('✅ Email service ready (Gmail SMTP)'))
-        .catch((err) => {
-            console.error('❌ Email service failed to connect:', err.message);
+    transporter.verify(function (error, success) {
+        if (error) {
+            console.error('❌ Email service failed to connect:', error.message);
             console.error('   Check EMAIL_USER and EMAIL_PASS in your .env file.');
-            transporter = null; // Disable on failure
-        });
+        } else {
+            console.log('✅ Email service ready (Gmail SMTP via IPv4)');
+        }
+    });
 } else {
-    console.warn('⚠️  EMAIL_USER / EMAIL_PASS not set — emails will be logged to console (dev mode).');
+    console.log('⚠️ EMAIL_USER or EMAIL_PASS not set in environment variables.');
+    console.log('   Fallback mode active: Password reset links will print directly to the terminal console.');
+    //     transporter.verify()
+    //         .then(() => console.log('✅ Email service ready (Gmail SMTP)'))
+    //         .catch((err) => {
+    //             console.error('❌ Email service failed to connect:', err.message);
+    //             console.error('   Check EMAIL_USER and EMAIL_PASS in your .env file.');
+    //             transporter = null; // Disable on failure
+    //         });
+    // } else {
+    //     console.warn('⚠️  EMAIL_USER / EMAIL_PASS not set — emails will be logged to console (dev mode).');
 }
 
 // --- HTML Email Template ---

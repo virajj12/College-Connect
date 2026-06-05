@@ -1071,7 +1071,7 @@ function generateHeatmapGrid(data) {
     grid.className = 'heatmap-grid';
 
     // 3. Render Weeks & Cells
-    const CELL_WIDTH = 15; // 12px width + 3px gap
+    const CELL_WIDTH = 18; // 12px width + 3px gap
     let lastMonth = -1;
 
     for (let w = 0; w < weeksToRender; w++) {

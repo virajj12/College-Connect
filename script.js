@@ -1172,7 +1172,6 @@ function getLevel(count) {
     let numTasks = 0;
     numTasks = tasks.length;
     let countRatio = count / (numTasks? numTasks:1);
-    console.log('Count:', count, 'Total Tasks:', numTasks, 'Ratio:', countRatio);
     if(countRatio > 1){
         if (count === 0) return 0;
         if (count <= 2) return 1;

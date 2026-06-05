@@ -38,6 +38,7 @@ const API_BASE_URL = 'https://college-connect-pluo.onrender.com/api';
 
 // --- Store for search functionality ---
 let cachedNotifications = [];
+let tasks = {};
 
 // ============================================
 // TOAST NOTIFICATION SYSTEM
@@ -238,6 +239,7 @@ async function renderDashboards() {
                 studentDashboard.style.display = 'block';
                 setTimeout(() => studentDashboard.classList.add('visible'), 10);
                 showSection('notifications', currentUser.branch);
+                getTasks();
             } else if (currentUser.role === 'admin') {
                 adminDashboard.style.display = 'block';
                 setTimeout(() => adminDashboard.classList.add('visible'), 10);
@@ -1153,12 +1155,34 @@ function generateHeatmapGrid(data) {
 //     }
 // }
 
+async function getTasks(){
+    const token = localStorage.getItem('token');
+    try{
+        const response = await fetch(`${API_BASE_URL}/consistency/tasks`, {
+            headers: { 'x-auth-token': token }
+        });
+        tasks = await response.json();
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+    }
+    
+}
+
 function getLevel(count) {
-    if (count === 0) return 0;
-    if (count <= 2) return 1;
-    if (count <= 4) return 2;
-    if (count <= 6) return 3;
-    return 4;
+    let numTasks = 0;
+    numTasks = tasks.length;
+    let countRatio = count / numTasks? 1:numTasks;
+    if(countRatio > 1){
+        if (count === 0) return 0;
+        if (count <= 2) return 1;
+        if (count <= 4) return 2;
+        if (count <= 6) return 3;
+        return 4;
+    } else if(countRatio === 0) return 0;
+    else if(countRatio <= 0.25) return 1;
+    else if(countRatio <= 0.5) return 2;
+    else if(countRatio <= 0.75) return 3;
+    else return 4;
 }
 
 // ============================================

@@ -1308,19 +1308,19 @@ body {
 }
 
 .level-1 {
-    background-color: #0e4429;
+    background-color: rgb(0, 64, 10);
 }
 
 .level-2 {
-    background-color: #006d32;
+    background-color: rgb(0, 128, 20);
 }
 
 .level-3 {
-    background-color: #26a641;
+    background-color: rgb(0, 190, 30);
 }
 
 .level-4 {
-    background-color: #39d353;
+    background-color: rgb(0, 255, 40);
 }
 
 .heatmap-legend {

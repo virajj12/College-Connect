@@ -656,7 +656,7 @@ body {
    CARDS
    ============================================ */
 .card {
-    background: var(--surface);
+    background: rgba(15, 23, 42, 0.35);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border-radius: var(--radius-lg);
@@ -1589,7 +1589,9 @@ body {
         width: 100%;
         padding: 8px;
     }
-
+    .nav-wrap:after {
+        border-radius: var(--radius-lg);
+    }
     .bubble-nav {
         flex-direction: column;
         width: 100%;

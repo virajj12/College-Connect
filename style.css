@@ -1207,7 +1207,7 @@ body {
     gap: 4px;
     position: relative;
     align-items: flex-start;
-    min-width: max-content;
+    max-width: fit-content;
 }
 
 .heatmap-month-labels {
@@ -1507,6 +1507,35 @@ body {
         transform: translateY(0);
     }
 }
+.heatmap-container {
+    width: 100%;
+    overflow-x: auto;
+    padding-top: 8px;
+    padding-left: 8px;
+    padding-bottom: 8px; /* Gives some breathing room for the scrollbar */
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+.heatmap-container::-webkit-scrollbar {
+    height: 8px; /* horizontal scrollbar height */
+}
+.heatmap-container::-webkit-scrollbar-track {
+    background: #000000;
+    border-radius: 10px;
+}
+.heatmap-container::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 10px;
+}
+.heatmap-container::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+/*For Firefox*/
+.heatmap-container {
+    scrollbar-width: thin;
+    scrollbar-color: #666 #000;
+}
 
 /* ============================================
    RESPONSIVE DESIGN
@@ -1622,39 +1651,6 @@ body {
 
     .toast {
         max-width: 100%;
-    }
-
-    .heatmap-container {
-        width: 100%;
-        overflow-x: auto;
-        padding-top: 8px;
-        padding-left: 8px;
-        padding-bottom: 8px; /* Gives some breathing room for the scrollbar */
-        background-color: rgba(0, 0, 0, 0.5);
-        border-radius: 10px;
-        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-    }
-    .heatmap-container::-webkit-scrollbar {
-        height: 8px; /* horizontal scrollbar height */
-    }
-
-    .heatmap-container::-webkit-scrollbar-track {
-        background: #000000;
-        border-radius: 10px;
-    }
-
-    .heatmap-container::-webkit-scrollbar-thumb {
-        background: #666;
-        border-radius: 10px;
-    }
-
-    .heatmap-container::-webkit-scrollbar-thumb:hover {
-        background: #888;
-    }
-    /*For Firefox*/
-    .heatmap-container {
-        scrollbar-width: thin;
-        scrollbar-color: #666 #000;
     }
 
     /* Larger touch targets for mobile */

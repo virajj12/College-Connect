@@ -47,6 +47,22 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
+// @route   POST api/notifications/subscribe
+// @desc    Save student/admin push subscription
+router.post('/subscribe', auth, async (req, res) => {
+    try {
+        const subscription = req.body;
+        
+        // Find the logged-in user and update their document with the subscription
+        await User.findByIdAndUpdate(req.user.id, { pushSubscription: subscription });
+        
+        res.status(201).json({ msg: 'Push subscription saved to DB.' });
+    } catch (err) {
+        console.error('Subscription error:', err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 // @route   POST api/notifications
 // @desc    Admin: Create a new notification
 router.post('/', [auth, adminAuth], async (req, res) => {

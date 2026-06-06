@@ -1382,6 +1382,53 @@ async function deleteAccount() {
     }
 }
 
+
+const publicVapidKey = 'BPwQ7CRpVqA2ktHQCnUJ8tcpppZRIc1Qt46wloDmNubtK9KEUIqEpjy8tVGyh_uVp6wjGvysrkXXAgjsyyWKqNE';
+
+async function subscribeToPush() {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    try {
+      // 1. Ask for permission
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') throw new Error('Permission denied');
+
+      // 2. Get the Service Worker registration
+      const register = await navigator.serviceWorker.ready;
+
+      // 3. Subscribe to Push
+      const subscription = await register.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+      });
+
+      // 4. Send the subscription object to your Node backend
+      await fetch('${API_BASE_URL}/api/subscribe', {
+        method: 'POST',
+        body: JSON.stringify(subscription),
+        headers: {
+          'content-type': 'application/json'
+        }
+      });
+
+      console.log('Push Subscribed successfully!');
+    } catch (err) {
+      console.error('Push subscription failed:', err);
+    }
+  }
+}
+
+// Helper function required to convert the VAPID key for the browser
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

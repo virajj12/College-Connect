@@ -1388,25 +1388,30 @@ const publicVapidKey = 'BPwQ7CRpVqA2ktHQCnUJ8tcpppZRIc1Qt46wloDmNubtK9KEUIqEpjy8
 async function subscribeToPush() {
   if ('serviceWorker' in navigator && 'PushManager' in window) {
     try {
-      // 1. Ask for permission
+      // 1. Get user token
+      const token = localStorage.getItem('token');
+      if (!token) return; // Prevent subscribing if not logged in
+
+      // 2. Ask for permission
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') throw new Error('Permission denied');
 
-      // 2. Get the Service Worker registration
+      // 3. Get the Service Worker registration
       const register = await navigator.serviceWorker.ready;
 
-      // 3. Subscribe to Push
+      // 4. Subscribe to Push
       const subscription = await register.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
       });
 
-      // 4. Send the subscription object to your Node backend
-      await fetch('${API_BASE_URL}/api/subscribe', {
+      // 5. Send the subscription to your notifications route
+      await fetch(`${API_BASE_URL}/notifications/subscribe`, {
         method: 'POST',
         body: JSON.stringify(subscription),
         headers: {
-          'content-type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-auth-token': token // Authenticates the user in the backend
         }
       });
 

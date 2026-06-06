@@ -30,7 +30,11 @@ const UserSchema = new mongoose.Schema({
     },
     // --- ADDED FOR PASSWORD RESET ---
     resetPasswordToken: String,
-    resetPasswordExpire: Date
+    resetPasswordExpire: Date,
+    pushSubscription: {
+        type: Object, // Stores the entire subscription object (endpoint, keys)
+        default: null
+    }
 });
 
 // Method to generate and hash the password token (used by /forgot-password)

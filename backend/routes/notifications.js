@@ -2,7 +2,16 @@
 const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
+const User = require('../models/User'); // Import your updated User model
 const auth = require('../middleware/auth'); // Middleware for token verification
+const webpush = require('web-push'); 
+
+// Configure web-push (Make sure to add your email and actual private key to .env)
+webpush.setVapidDetails(
+    'mailto:admin@alvas.org', // Replace with your admin email
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+);
 
 // Middleware to restrict access to Admin
 const adminAuth = (req, res, next) => {
@@ -53,6 +62,37 @@ router.post('/', [auth, adminAuth], async (req, res) => {
         });
 
         const notification = await newNotification.save();
+
+        // --- PUSH NOTIFICATION BROADCAST LOGIC ---
+        // 1. Find target audience (All students with a subscription)
+        let query = { pushSubscription: { $ne: null } };
+        
+        // 2. If it's a specific branch (not 'college'), filter by branch
+        if (audience !== 'college') {
+            query.branch = audience.toUpperCase();
+        }
+
+        const users = await User.find(query);
+
+        // 3. Create the payload
+        const payload = JSON.stringify({
+            title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}: ${title}`,
+            body: content.length > 50 ? content.substring(0, 50) + '...' : content,
+            icon: '/favicon.png',
+            url: '/College-Connect/index.html'
+        });
+
+        // 4. Send to all matched users
+        users.forEach(user => {
+            webpush.sendNotification(user.pushSubscription, payload).catch(err => {
+                console.error(`Push failed for user ${user._id}`);
+                // Clean up expired subscriptions
+                if (err.statusCode === 410) {
+                    User.findByIdAndUpdate(user._id, { pushSubscription: null }).exec();
+                }
+            });
+        });
+        
         res.json(notification);
 
     } catch (err) {

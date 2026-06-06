@@ -62,7 +62,8 @@ self.addEventListener('notificationclick', (event) => {
         
         // If an open tab matches your app's URL, focus it
         if (client.url.includes('/College-Connect/') && 'focus' in client) {
-          return client.focus();
+          client.focus();
+          return client.navigate(client.url);
         }
       }
       

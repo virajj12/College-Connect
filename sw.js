@@ -49,9 +49,27 @@ self.addEventListener('push', (event) => {
 // Handle what happens when the user taps the notification
 self.addEventListener('notificationclick', (event) => {
   event.notification.close(); // Close the notification
-  
-  // Open the app to the specific URL
+
+  const targetUrl = event.notification.data.url || '/College-Connect/index.html';
+
   event.waitUntil(
-    clients.openWindow(event.notification.data.url)
+    // Scan all open browser tabs/windows
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      
+      // 1. Check if the app is already open in any tab
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        
+        // If an open tab matches your app's URL, focus it
+        if (client.url.includes('/College-Connect/') && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      
+      // 2. If the app is NOT open anywhere, spawn a new tab
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
   );
 });

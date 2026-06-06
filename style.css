@@ -1848,6 +1848,16 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.notification-preference-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 12px;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 .account-info-row:last-child {
     border-bottom: none;
 }
@@ -1886,6 +1896,14 @@ body {
     font-size: 0.78rem;
     font-weight: 600;
     color: rgba(240, 244, 248, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.notification-preference-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgb(255, 255, 255);
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }

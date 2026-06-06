@@ -8,40 +8,6 @@ dotenv.config();
 
 const app = express();
 
-const webpush = require('web-push');
-
-// Configure web-push with your keys
-webpush.setVapidDetails(
-  'mailto:vjvirajjain122005@gmail.com', // Replace with your email
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
-
-// Store subscriptions in memory (For production, save these to your MongoDB database alongside the User model)
-let dummyDb = []; 
-
-// Route to save a user's subscription
-router.post('/subscribe', (req, res) => {
-  const subscription = req.body;
-  dummyDb.push(subscription);
-  res.status(201).json({ message: 'Subscription saved.' });
-});
-
-// Example route to trigger a push notification (e.g., when an admin posts a new curriculum update)
-router.post('/send-broadcast', (req, res) => {
-  const payload = JSON.stringify({
-    title: 'New Update Available!',
-    body: 'Check the dashboard for the latest curriculum changes.',
-    icon: '/favicon.png'
-  });
-
-  // Send to all subscribed users
-  dummyDb.forEach(sub => {
-    webpush.sendNotification(sub, payload).catch(err => console.error(err));
-  });
-  
-  res.status(200).json({ message: 'Broadcast sent.' });
-});
 
 // Trust the first reverse proxy (Render's load balancer).
 // This is SAFE and REQUIRED for Render deployments:

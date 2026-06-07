@@ -1446,3 +1446,14 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+
+let refreshing = false;
+
+// Listen for the Service Worker taking control
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+  if (!refreshing) {
+    console.log("New Service Worker activated! Reloading page to show new content...");
+    window.location.reload();
+    refreshing = true; // Prevents an infinite reload loop
+  }
+});

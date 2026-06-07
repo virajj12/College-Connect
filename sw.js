@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'college-connect-v1';
+const CACHE_NAME = 'college-connect-v1'; // Change to v2, v3, etc. when pushing updates
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,11 +10,34 @@ const ASSETS_TO_CACHE = [
   './favicon-512.png'
 ];
 
-// Install event: cache basic assets
+// Install event: cache basic assets and force immediate install
 self.addEventListener('install', (event) => {
+  // 1. Force the waiting service worker to become the active one instantly
+  self.skipWaiting(); 
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
+    })
+  );
+});
+
+// Activate event: Clean up old caches and take control
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          // 2. Delete any old caches that don't match the current CACHE_NAME
+          if (cacheName !== CACHE_NAME) {
+            console.log('Service Worker: Clearing Old Cache');
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      // 3. Tell the active service worker to take control of the page immediately
+      return clients.claim();
     })
   );
 });

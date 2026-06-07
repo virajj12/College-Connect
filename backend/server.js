@@ -71,12 +71,12 @@ app.use('/api/consistency', require('./routes/consistency'));
 // --- SERVING FRONTEND (Optional, but useful for hosting) ---
 // Serve static assets (HTML, CSS, JS, images) from the root directory
 // We join __dirname (backend) with '..' (parent directory)
-app.use(express.static(path.join(__dirname, '..')));
+// app.use(express.static(path.join(__dirname, '..')));
 
 // Serve the index.html file on the root route
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
-});
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, '..', 'index.html'));
+// });
 
 // The previous route has been replaced by the above logic.
 // app.get('/', (req, res) => res.send('API Running')); 

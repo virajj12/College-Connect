@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'college-connect-v1'; // Change to v2, v3, etc. when pushing updates
+const CACHE_NAME = 'college-connect-v1.1'; // Change to v2, v3, etc. when pushing updates
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

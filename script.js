@@ -1127,7 +1127,68 @@ function generateHeatmapGrid(data) {
     bodyRow.appendChild(grid);
     heatmapWrapper.appendChild(monthRow);
     heatmapWrapper.appendChild(bodyRow);
-    
+// --- 4. NEW FEATURE: Consistency & Streak Calculation ---
+    let streak = 0;
+    let checkDate = new Date(today);
+    let dateKey = ymd(checkDate);
+
+    // If today is 0, we start checking from yesterday so we don't break the active streak prematurely.
+    if (!data[dateKey] || data[dateKey] === 0) {
+        checkDate.setDate(checkDate.getDate() - 1);
+        dateKey = ymd(checkDate);
+    }
+
+    // Step 1: Walk backward to calculate the current streak
+    while (data[dateKey] && data[dateKey] > 0) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1); 
+        dateKey = ymd(checkDate);
+    }
+
+    // Step 2: checkDate is now parked on the most recent '0'. 
+    // Now, let's keep searching backward to see if there's ANY task before this gap.
+    let searchBackDate = new Date(checkDate);
+    let searchBackKey = ymd(searchBackDate);
+    let foundPreviousTask = false;
+    let searchLimit = 365; // Prevent infinite loops by limiting the search to 1 year (the heatmap's range)
+
+    while (searchLimit > 0) {
+        if (data[searchBackKey] && data[searchBackKey] > 0) {
+            foundPreviousTask = true;
+            break; // We found the last completed task BEFORE the streak broke!
+        }
+        searchBackDate.setDate(searchBackDate.getDate() - 1);
+        searchBackKey = ymd(searchBackDate);
+        searchLimit--;
+    }
+
+    // Update DOM Elements
+    const consistentDaysEl = document.getElementById('consistentDays');
+    const consistentLastEl = document.getElementById('consistentLast');
+
+    if (consistentDaysEl) {
+        consistentDaysEl.textContent = `Consistent days: ${streak}`;
+    }
+
+    if (consistentLastEl) {
+        if (!foundPreviousTask) {
+            // They have NEVER missed a day since they started, or have zero data total
+            consistentLastEl.textContent = streak > 0 
+                ? "Not consistent since: Perfect streak!" 
+                : "Not consistent since: No data yet";
+        } else {
+            // The actual day the consistency broke is the day AFTER the previous task we just found
+            searchBackDate.setDate(searchBackDate.getDate() + 1);
+            
+            const formattedMissedDate = searchBackDate.toLocaleDateString(undefined, { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+            consistentLastEl.textContent = `Not consistent since: ${formattedMissedDate}`;
+        }
+    }
+    // ---------------------------------------------------------
     // Auto-scroll to the right so the current date is visible
     setTimeout(() => {
         const container = document.querySelector('.heatmap-container');

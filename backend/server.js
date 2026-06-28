@@ -28,7 +28,7 @@ const allowedOrigins = [
     // Local Development (e.g., VS Code Live Server)
     'http://127.0.0.1:5500',
     'http://localhost:5500',
-    'https://college-connect-red'
+    'https://college-connect-red.vercel.app'
 ];
 
 const corsOptions = {

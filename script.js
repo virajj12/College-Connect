@@ -34,7 +34,10 @@ const addTaskForm = document.getElementById('addTaskForm');
 const heatmapGrid = document.getElementById('heatmapGrid');
 
 // --- API Configuration ---
-const API_BASE_URL = 'https://college-connect-pluo.onrender.com/api';
+// Use local backend for development, and relative '/api' for Vercel deployment
+const API_BASE_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api' 
+    : '/api';
 
 // --- Store for search functionality ---
 let cachedNotifications = [];

@@ -1,7 +1,7 @@
 # .gitignore file
 
 # Ignore Node.js module folders
-/backend/node_modules
+/api/node_modules
 
 # Ignore environment variables
 /backend/.env

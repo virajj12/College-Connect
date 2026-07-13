@@ -83,4 +83,10 @@ app.use('/api/consistency', require('./routes/consistency'));
 // app.get('/', (req, res) => res.send('API Running')); 
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+// Only listen locally, Vercel will use the exported app in serverless functions
+if (require.main === module) {
+    app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+}
+
+module.exports = app;
